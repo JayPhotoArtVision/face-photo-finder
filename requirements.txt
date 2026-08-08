@@ -1,0 +1,8 @@
+streamlit
+opencv-python
+numpy
+insightface
+onnxruntime
+qrcode[pil]
+pandas
+faiss-cpu

@@ -1,0 +1,11 @@
+.venv/
+temp_files/
+temp_crops/
+events/
+insightface_models/
+__pycache__/
+*.pyc
+*.jpg
+*.jpeg
+*.png
+benchmark_results.csv

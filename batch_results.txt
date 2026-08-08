@@ -1,0 +1,1280 @@
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test1.jpg
+Image loaded.
+Faces detected: 1
+Usable query faces: 1
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : D
+Similarity  : 0.8241
+Decision    : STRONG MATCH
+Photo       : JAY04710.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person D | Similarity=0.8241 | JAY04710.JPG | Face=0
+   2. Person D | Similarity=0.7864 | JAY04716.JPG | Face=0
+   3. Person D | Similarity=0.7862 | JAY04640.JPG | Face=0
+   4. Person D | Similarity=0.7852 | JAY04713.JPG | Face=0
+   5. Person D | Similarity=0.7369 | JAY04715.JPG | Face=0
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON D
+   Person Score              : 0.8241
+   Best Similarity           : 0.8241
+   Average Similarity        : 0.8241
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | JAY04710.JPG | Face=0 | Similarity=0.8241
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person D | Similarity=0.8241
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : D
+Best Similarity          : 0.8241
+Average Similarity       : 0.8241
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.8241
+Person Score Margin      : 0.8241
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+JAY04710.JPG | QueryFace=0 | DB Face=0 | Similarity=0.8241
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test2.jpg
+Image loaded.
+Faces detected: 4
+Usable query faces: 4
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : D
+Similarity  : 0.8160
+Decision    : STRONG MATCH
+Photo       : JAY04710.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person D | Similarity=0.8160 | JAY04710.JPG | Face=0
+   2. Person D | Similarity=0.7965 | JAY04713.JPG | Face=0
+   3. Person D | Similarity=0.7469 | JAY04716.JPG | Face=0
+   4. Person D | Similarity=0.7400 | JAY04640.JPG | Face=0
+   5. Person B | Similarity=0.7194 | SAI_5929.jpg | Face=1
+
+QUERY FACE 1
+----------------------------------------------------------------------
+Best Person : C
+Similarity  : 0.7990
+Decision    : STRONG MATCH
+Photo       : IMG_20191008_194458.jpg
+Face        : 0
+
+Top Database Matches:
+   1. Person C | Similarity=0.7990 | IMG_20191008_194458.jpg | Face=0
+   2. Person C | Similarity=0.7778 | JAY00345.JPG | Face=0
+   3. Person C | Similarity=0.7247 | _DSC3274.JPG | Face=0
+   4. Person A | Similarity=0.7223 | SAI_5929.jpg | Face=0
+   5. Person C | Similarity=0.7088 | _DSC3271.JPG | Face=0
+
+QUERY FACE 2
+----------------------------------------------------------------------
+Best Person : B
+Similarity  : 0.8193
+Decision    : STRONG MATCH
+Photo       : DSC_8399.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person B | Similarity=0.8193 | DSC_8399.JPG | Face=0
+   2. Person B | Similarity=0.7650 | JAY04601 01.jpg | Face=0
+   3. Person B | Similarity=0.7508 | JAY04684.JPG | Face=0
+   4. Person B | Similarity=0.7116 | JAY04686.JPG | Face=0
+   5. Person B | Similarity=0.6960 | JAY04702.JPG | Face=0
+
+QUERY FACE 3
+----------------------------------------------------------------------
+Best Person : A
+Similarity  : 0.9224
+Decision    : STRONG MATCH
+Photo       : JAY02026.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person A | Similarity=0.9224 | JAY02026.JPG | Face=0
+   2. Person A | Similarity=0.8928 | JAY02023.JPG | Face=0
+   3. Person A | Similarity=0.8348 | JAY02024.JPG | Face=0
+   4. Person A | Similarity=0.7687 | DSC_8394.JPG | Face=0
+   5. Person D | Similarity=0.7261 | SAI_5929.jpg | Face=3
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON A
+   Person Score              : 0.9224
+   Best Similarity           : 0.9224
+   Average Similarity        : 0.9224
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=3 | JAY02026.JPG | Face=0 | Similarity=0.9224
+
+2. PERSON B
+   Person Score              : 0.8193
+   Best Similarity           : 0.8193
+   Average Similarity        : 0.8193
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=2 | DSC_8399.JPG | Face=0 | Similarity=0.8193
+
+3. PERSON D
+   Person Score              : 0.8160
+   Best Similarity           : 0.8160
+   Average Similarity        : 0.8160
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | JAY04710.JPG | Face=0 | Similarity=0.8160
+
+4. PERSON C
+   Person Score              : 0.7990
+   Best Similarity           : 0.7990
+   Average Similarity        : 0.7990
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=1 | IMG_20191008_194458.jpg | Face=0 | Similarity=0.7990
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person D | Similarity=0.8160
+Face 1 -> Person C | Similarity=0.7990
+Face 2 -> Person B | Similarity=0.8193
+Face 3 -> Person A | Similarity=0.9224
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : A
+Best Similarity          : 0.9224
+Average Similarity       : 0.9224
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.9224
+Person Score Margin      : 0.1031
+Second Person            : B
+Second Person Score      : 0.8193
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+JAY02026.JPG | QueryFace=3 | DB Face=0 | Similarity=0.9224
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test3.jpg
+Image loaded.
+Faces detected: 1
+Usable query faces: 1
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : B
+Similarity  : 0.7870
+Decision    : STRONG MATCH
+Photo       : DSC_8399.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person B | Similarity=0.7870 | DSC_8399.JPG | Face=0
+   2. Person B | Similarity=0.7451 | JAY04684.JPG | Face=0
+   3. Person B | Similarity=0.7448 | JAY04601 01.jpg | Face=0
+   4. Person B | Similarity=0.7124 | JAY04686.JPG | Face=0
+   5. Person B | Similarity=0.6854 | JAY04702.JPG | Face=0
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON B
+   Person Score              : 0.7870
+   Best Similarity           : 0.7870
+   Average Similarity        : 0.7870
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | DSC_8399.JPG | Face=0 | Similarity=0.7870
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person B | Similarity=0.7870
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : B
+Best Similarity          : 0.7870
+Average Similarity       : 0.7870
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.7870
+Person Score Margin      : 0.7870
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+DSC_8399.JPG | QueryFace=0 | DB Face=0 | Similarity=0.7870
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test4.jpg
+Image loaded.
+Faces detected: 3
+Usable query faces: 3
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : C
+Similarity  : 0.7675
+Decision    : STRONG MATCH
+Photo       : IMG_20191008_194458.jpg
+Face        : 0
+
+Top Database Matches:
+   1. Person C | Similarity=0.7675 | IMG_20191008_194458.jpg | Face=0
+   2. Person C | Similarity=0.7602 | JAY00345.JPG | Face=0
+   3. Person C | Similarity=0.7311 | _DSC3274.JPG | Face=0
+   4. Person C | Similarity=0.7288 | _DSC3271.JPG | Face=0
+   5. Person A | Similarity=0.7037 | SAI_5929.jpg | Face=0
+
+QUERY FACE 1
+----------------------------------------------------------------------
+Best Person : D
+Similarity  : 0.7524
+Decision    : STRONG MATCH
+Photo       : JAY04710.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person D | Similarity=0.7524 | JAY04710.JPG | Face=0
+   2. Person D | Similarity=0.7240 | JAY04716.JPG | Face=0
+   3. Person D | Similarity=0.7052 | JAY04640.JPG | Face=0
+   4. Person D | Similarity=0.6980 | JAY04713.JPG | Face=0
+   5. Person D | Similarity=0.6673 | JAY04715.JPG | Face=0
+
+QUERY FACE 2
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON C
+   Person Score              : 0.7675
+   Best Similarity           : 0.7675
+   Average Similarity        : 0.7675
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | IMG_20191008_194458.jpg | Face=0 | Similarity=0.7675
+
+2. PERSON D
+   Person Score              : 0.7524
+   Best Similarity           : 0.7524
+   Average Similarity        : 0.7524
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=1 | JAY04710.JPG | Face=0 | Similarity=0.7524
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person C | Similarity=0.7675
+Face 1 -> Person D | Similarity=0.7524
+Face 2 -> NO MATCH
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : C
+Best Similarity          : 0.7675
+Average Similarity       : 0.7675
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.7675
+Person Score Margin      : 0.0151
+Second Person            : D
+Second Person Score      : 0.7524
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+IMG_20191008_194458.jpg | QueryFace=0 | DB Face=0 | Similarity=0.7675
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test5.jpg
+Image loaded.
+Faces detected: 3
+Usable query faces: 3
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : C
+Similarity  : 0.7428
+Decision    : STRONG MATCH
+Photo       : IMG_20191008_194458.jpg
+Face        : 0
+
+Top Database Matches:
+   1. Person C | Similarity=0.7428 | IMG_20191008_194458.jpg | Face=0
+   2. Person C | Similarity=0.7370 | IMG_20191008_194545.jpg | Face=0
+   3. Person A | Similarity=0.7251 | SAI_5929.jpg | Face=0
+   4. Person C | Similarity=0.7207 | JAY00345.JPG | Face=0
+   5. Person C | Similarity=0.6981 | _DSC3274.JPG | Face=0
+
+QUERY FACE 1
+----------------------------------------------------------------------
+Best Person : B
+Similarity  : 0.8255
+Decision    : STRONG MATCH
+Photo       : DSC_8399.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person B | Similarity=0.8255 | DSC_8399.JPG | Face=0
+   2. Person B | Similarity=0.7802 | JAY04601 01.jpg | Face=0
+   3. Person B | Similarity=0.7574 | JAY04684.JPG | Face=0
+   4. Person B | Similarity=0.7261 | JAY04702.JPG | Face=0
+   5. Person B | Similarity=0.7160 | JAY04690.JPG | Face=0
+
+QUERY FACE 2
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON B
+   Person Score              : 0.8255
+   Best Similarity           : 0.8255
+   Average Similarity        : 0.8255
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=1 | DSC_8399.JPG | Face=0 | Similarity=0.8255
+
+2. PERSON C
+   Person Score              : 0.7428
+   Best Similarity           : 0.7428
+   Average Similarity        : 0.7428
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | IMG_20191008_194458.jpg | Face=0 | Similarity=0.7428
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person C | Similarity=0.7428
+Face 1 -> Person B | Similarity=0.8255
+Face 2 -> NO MATCH
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : B
+Best Similarity          : 0.8255
+Average Similarity       : 0.8255
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.8255
+Person Score Margin      : 0.0826
+Second Person            : C
+Second Person Score      : 0.7428
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+DSC_8399.JPG | QueryFace=1 | DB Face=0 | Similarity=0.8255
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test6.jpg
+Image loaded.
+Faces detected: 9
+Usable query faces: 9
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : C
+Similarity  : 0.6576
+Decision    : STRONG MATCH
+Photo       : IMG_20191008_194458.jpg
+Face        : 0
+
+Top Database Matches:
+   1. Person C | Similarity=0.6576 | IMG_20191008_194458.jpg | Face=0
+   2. Person A | Similarity=0.6560 | SAI_5929.jpg | Face=0
+   3. Person C | Similarity=0.6458 | _DSC3274.JPG | Face=0
+   4. Person C | Similarity=0.6406 | JAY00345.JPG | Face=0
+   5. Person C | Similarity=0.6079 | IMG_20191008_194545.jpg | Face=0
+
+QUERY FACE 1
+----------------------------------------------------------------------
+Best Person : A
+Similarity  : 0.8995
+Decision    : STRONG MATCH
+Photo       : DSC_5509.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person A | Similarity=0.8995 | DSC_5509.JPG | Face=0
+   2. Person A | Similarity=0.7782 | JAY02023.JPG | Face=0
+   3. Person A | Similarity=0.7227 | DSC_8394.JPG | Face=0
+   4. Person D | Similarity=0.7043 | SAI_5929.jpg | Face=3
+   5. Person A | Similarity=0.6974 | JAY02026.JPG | Face=0
+
+QUERY FACE 2
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 3
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 4
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 5
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 6
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 7
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 8
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON A
+   Person Score              : 0.8995
+   Best Similarity           : 0.8995
+   Average Similarity        : 0.8995
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=1 | DSC_5509.JPG | Face=0 | Similarity=0.8995
+
+2. PERSON C
+   Person Score              : 0.6576
+   Best Similarity           : 0.6576
+   Average Similarity        : 0.6576
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | IMG_20191008_194458.jpg | Face=0 | Similarity=0.6576
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person C | Similarity=0.6576
+Face 1 -> Person A | Similarity=0.8995
+Face 2 -> NO MATCH
+Face 3 -> NO MATCH
+Face 4 -> NO MATCH
+Face 5 -> NO MATCH
+Face 6 -> NO MATCH
+Face 7 -> NO MATCH
+Face 8 -> NO MATCH
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : A
+Best Similarity          : 0.8995
+Average Similarity       : 0.8995
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.8995
+Person Score Margin      : 0.2420
+Second Person            : C
+Second Person Score      : 0.6576
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+DSC_5509.JPG | QueryFace=1 | DB Face=0 | Similarity=0.8995
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test7.jpg
+Image loaded.
+Faces detected: 4
+Usable query faces: 4
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : B
+Similarity  : 0.7059
+Decision    : STRONG MATCH
+Photo       : SAI_5929.jpg
+Face        : 1
+
+Top Database Matches:
+   1. Person B | Similarity=0.7059 | SAI_5929.jpg | Face=1
+   2. Person D | Similarity=0.6731 | JAY04710.JPG | Face=0
+   3. Person D | Similarity=0.6630 | JAY04713.JPG | Face=0
+   4. Person D | Similarity=0.6502 | JAY04640.JPG | Face=0
+   5. Person D | Similarity=0.6299 | JAY04716.JPG | Face=0
+
+QUERY FACE 1
+----------------------------------------------------------------------
+Best Person : C
+Similarity  : 0.7404
+Decision    : STRONG MATCH
+Photo       : IMG_20191008_194458.jpg
+Face        : 0
+
+Top Database Matches:
+   1. Person C | Similarity=0.7404 | IMG_20191008_194458.jpg | Face=0
+   2. Person A | Similarity=0.7086 | SAI_5929.jpg | Face=0
+   3. Person C | Similarity=0.7046 | JAY00345.JPG | Face=0
+   4. Person C | Similarity=0.6999 | _DSC3274.JPG | Face=0
+   5. Person C | Similarity=0.6563 | _DSC3271.JPG | Face=0
+
+QUERY FACE 2
+----------------------------------------------------------------------
+Best Person : A
+Similarity  : 0.8420
+Decision    : STRONG MATCH
+Photo       : DSC_5509.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person A | Similarity=0.8420 | DSC_5509.JPG | Face=0
+   2. Person A | Similarity=0.7875 | JAY02023.JPG | Face=0
+   3. Person A | Similarity=0.7593 | JAY02026.JPG | Face=0
+   4. Person A | Similarity=0.7279 | DSC_8394.JPG | Face=0
+   5. Person A | Similarity=0.7225 | JAY02024.JPG | Face=0
+
+QUERY FACE 3
+----------------------------------------------------------------------
+Best Person : B
+Similarity  : 0.7021
+Decision    : STRONG MATCH
+Photo       : DSC_8399.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person B | Similarity=0.7021 | DSC_8399.JPG | Face=0
+   2. Person B | Similarity=0.6906 | JAY04601 01.jpg | Face=0
+   3. Person B | Similarity=0.6887 | JAY04702.JPG | Face=0
+   4. Person C | Similarity=0.6691 | SAI_5929.jpg | Face=2
+   5. Person B | Similarity=0.6330 | JAY04690.JPG | Face=0
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON A
+   Person Score              : 0.8420
+   Best Similarity           : 0.8420
+   Average Similarity        : 0.8420
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=2 | DSC_5509.JPG | Face=0 | Similarity=0.8420
+
+2. PERSON C
+   Person Score              : 0.7404
+   Best Similarity           : 0.7404
+   Average Similarity        : 0.7404
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=1 | IMG_20191008_194458.jpg | Face=0 | Similarity=0.7404
+
+3. PERSON B
+   Person Score              : 0.7053
+   Best Similarity           : 0.7059
+   Average Similarity        : 0.7040
+   Supporting Query Faces    : 2
+   Supporting DB Matches     : 2
+
+   Best Supporting Matches:
+      - QueryFace=0 | SAI_5929.jpg | Face=1 | Similarity=0.7059
+      - QueryFace=3 | DSC_8399.JPG | Face=0 | Similarity=0.7021
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person B | Similarity=0.7059
+Face 1 -> Person C | Similarity=0.7404
+Face 2 -> Person A | Similarity=0.8420
+Face 3 -> Person B | Similarity=0.7021
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : A
+Best Similarity          : 0.8420
+Average Similarity       : 0.8420
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.8420
+Person Score Margin      : 0.1016
+Second Person            : C
+Second Person Score      : 0.7404
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+DSC_5509.JPG | QueryFace=2 | DB Face=0 | Similarity=0.8420
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test8.jpg
+Image loaded.
+Faces detected: 4
+Usable query faces: 4
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : A
+Similarity  : 0.8110
+Decision    : STRONG MATCH
+Photo       : JAY02023.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person A | Similarity=0.8110 | JAY02023.JPG | Face=0
+   2. Person D | Similarity=0.7790 | SAI_5929.jpg | Face=3
+   3. Person A | Similarity=0.7626 | DSC_5509.JPG | Face=0
+   4. Person A | Similarity=0.7523 | JAY02026.JPG | Face=0
+   5. Person A | Similarity=0.7413 | DSC_8394.JPG | Face=0
+
+QUERY FACE 1
+----------------------------------------------------------------------
+Best Person : C
+Similarity  : 0.7394
+Decision    : STRONG MATCH
+Photo       : IMG_20191008_194458.jpg
+Face        : 0
+
+Top Database Matches:
+   1. Person C | Similarity=0.7394 | IMG_20191008_194458.jpg | Face=0
+   2. Person C | Similarity=0.6863 | JAY00345.JPG | Face=0
+   3. Person A | Similarity=0.6623 | SAI_5929.jpg | Face=0
+   4. Person C | Similarity=0.6344 | _DSC3274.JPG | Face=0
+   5. Person C | Similarity=0.6233 | IMG_20191008_194545.jpg | Face=0
+
+QUERY FACE 2
+----------------------------------------------------------------------
+Best Person : B
+Similarity  : 0.7020
+Decision    : STRONG MATCH
+Photo       : DSC_8399.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person B | Similarity=0.7020 | DSC_8399.JPG | Face=0
+   2. Person B | Similarity=0.6942 | JAY04702.JPG | Face=0
+   3. Person B | Similarity=0.6926 | JAY04601 01.jpg | Face=0
+   4. Person C | Similarity=0.6631 | SAI_5929.jpg | Face=2
+   5. Person B | Similarity=0.6344 | JAY04690.JPG | Face=0
+
+QUERY FACE 3
+----------------------------------------------------------------------
+Best Person : D
+Similarity  : 0.7364
+Decision    : STRONG MATCH
+Photo       : JAY04710.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person D | Similarity=0.7364 | JAY04710.JPG | Face=0
+   2. Person D | Similarity=0.7117 | JAY04713.JPG | Face=0
+   3. Person D | Similarity=0.7000 | JAY04716.JPG | Face=0
+   4. Person B | Similarity=0.6900 | SAI_5929.jpg | Face=1
+   5. Person D | Similarity=0.6853 | JAY04640.JPG | Face=0
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON A
+   Person Score              : 0.8110
+   Best Similarity           : 0.8110
+   Average Similarity        : 0.8110
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | JAY02023.JPG | Face=0 | Similarity=0.8110
+
+2. PERSON C
+   Person Score              : 0.7394
+   Best Similarity           : 0.7394
+   Average Similarity        : 0.7394
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=1 | IMG_20191008_194458.jpg | Face=0 | Similarity=0.7394
+
+3. PERSON D
+   Person Score              : 0.7364
+   Best Similarity           : 0.7364
+   Average Similarity        : 0.7364
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=3 | JAY04710.JPG | Face=0 | Similarity=0.7364
+
+4. PERSON B
+   Person Score              : 0.7020
+   Best Similarity           : 0.7020
+   Average Similarity        : 0.7020
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=2 | DSC_8399.JPG | Face=0 | Similarity=0.7020
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person A | Similarity=0.8110
+Face 1 -> Person C | Similarity=0.7394
+Face 2 -> Person B | Similarity=0.7020
+Face 3 -> Person D | Similarity=0.7364
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : A
+Best Similarity          : 0.8110
+Average Similarity       : 0.8110
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.8110
+Person Score Margin      : 0.0716
+Second Person            : C
+Second Person Score      : 0.7394
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+JAY02023.JPG | QueryFace=0 | DB Face=0 | Similarity=0.8110
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - FACE LEVEL + PERSON LEVEL
+======================================================================
+
+Loading face model...
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\1k3d68.onnx landmark_3d_68 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\2d106det.onnx landmark_2d_106 ['None', 3, 192, 192] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\det_10g.onnx detection [1, 3, '?', '?'] 127.5 128.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\genderage.onnx genderage ['None', 3, 96, 96] 0.0 1.0
+Applied providers: ['CPUExecutionProvider'], with options: {'CPUExecutionProvider': {}}
+find model: C:\Users\JAYHIM/.insightface\models\buffalo_l\w600k_r50.onnx recognition ['None', 3, 112, 112] 127.5 127.5
+set det-size: (640, 640)
+Face model loaded.
+
+Query image: test_images\test9.jpg
+Image loaded.
+Faces detected: 7
+Usable query faces: 7
+PostgreSQL connected.
+Database labeled faces: 25
+
+======================================================================
+QUERY FACE LEVEL MATCHING
+======================================================================
+
+QUERY FACE 0
+----------------------------------------------------------------------
+Best Person : D
+Similarity  : 0.6909
+Decision    : STRONG MATCH
+Photo       : JAY04710.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person D | Similarity=0.6909 | JAY04710.JPG | Face=0
+   2. Person D | Similarity=0.6905 | JAY04713.JPG | Face=0
+   3. Person B | Similarity=0.6703 | SAI_5929.jpg | Face=1
+   4. Person D | Similarity=0.6589 | JAY04715.JPG | Face=0
+   5. Person D | Similarity=0.6522 | JAY04716.JPG | Face=0
+
+QUERY FACE 1
+----------------------------------------------------------------------
+Best Person : A
+Similarity  : 0.7340
+Decision    : STRONG MATCH
+Photo       : SAI_5929.jpg
+Face        : 0
+
+Top Database Matches:
+   1. Person A | Similarity=0.7340 | SAI_5929.jpg | Face=0
+   2. Person C | Similarity=0.7095 | IMG_20191008_194458.jpg | Face=0
+   3. Person C | Similarity=0.6691 | JAY00345.JPG | Face=0
+   4. Person C | Similarity=0.6565 | _DSC3274.JPG | Face=0
+   5. Person C | Similarity=0.6431 | IMG_20191008_194545.jpg | Face=0
+
+QUERY FACE 2
+----------------------------------------------------------------------
+Best Person : A
+Similarity  : 0.7785
+Decision    : STRONG MATCH
+Photo       : JAY02023.JPG
+Face        : 0
+
+Top Database Matches:
+   1. Person A | Similarity=0.7785 | JAY02023.JPG | Face=0
+   2. Person A | Similarity=0.7715 | JAY02026.JPG | Face=0
+   3. Person A | Similarity=0.7640 | DSC_8394.JPG | Face=0
+   4. Person A | Similarity=0.7543 | DSC_5509.JPG | Face=0
+   5. Person D | Similarity=0.7434 | SAI_5929.jpg | Face=3
+
+QUERY FACE 3
+----------------------------------------------------------------------
+Best Person : C
+Similarity  : 0.8027
+Decision    : STRONG MATCH
+Photo       : SAI_5929.jpg
+Face        : 2
+
+Top Database Matches:
+   1. Person C | Similarity=0.8027 | SAI_5929.jpg | Face=2
+   2. Person B | Similarity=0.6339 | JAY04702.JPG | Face=0
+   3. Person B | Similarity=0.6083 | DSC_8399.JPG | Face=0
+   4. Person B | Similarity=0.6060 | JAY04601 01.jpg | Face=0
+   5. Person B | Similarity=0.5928 | JAY04690.JPG | Face=0
+
+QUERY FACE 4
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 5
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+QUERY FACE 6
+----------------------------------------------------------------------
+No database match crossed threshold.
+
+======================================================================
+PERSON LEVEL AGGREGATION
+======================================================================
+
+1. PERSON C
+   Person Score              : 0.8027
+   Best Similarity           : 0.8027
+   Average Similarity        : 0.8027
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=3 | SAI_5929.jpg | Face=2 | Similarity=0.8027
+
+2. PERSON A
+   Person Score              : 0.7718
+   Best Similarity           : 0.7785
+   Average Similarity        : 0.7562
+   Supporting Query Faces    : 2
+   Supporting DB Matches     : 2
+
+   Best Supporting Matches:
+      - QueryFace=2 | JAY02023.JPG | Face=0 | Similarity=0.7785
+      - QueryFace=1 | SAI_5929.jpg | Face=0 | Similarity=0.7340
+
+3. PERSON D
+   Person Score              : 0.6909
+   Best Similarity           : 0.6909
+   Average Similarity        : 0.6909
+   Supporting Query Faces    : 1
+   Supporting DB Matches     : 1
+
+   Best Supporting Matches:
+      - QueryFace=0 | JAY04710.JPG | Face=0 | Similarity=0.6909
+
+======================================================================
+QUERY FACE -> PERSON SUMMARY
+======================================================================
+Face 0 -> Person D | Similarity=0.6909
+Face 1 -> Person A | Similarity=0.7340
+Face 2 -> Person A | Similarity=0.7785
+Face 3 -> Person C | Similarity=0.8027
+Face 4 -> NO MATCH
+Face 5 -> NO MATCH
+Face 6 -> NO MATCH
+
+======================================================================
+FINAL CONFIDENCE DECISION
+======================================================================
+
+Top Person              : C
+Best Similarity          : 0.8027
+Average Similarity       : 0.8027
+Supporting Query Faces   : 1
+Supporting DB Matches    : 1
+Person Score             : 0.8027
+Person Score Margin      : 0.0309
+Second Person            : A
+Second Person Score      : 0.7718
+
+FINAL DECISION           : STRONG MATCH
+
+======================================================================
+BEST PERSON MATCHED PHOTOS
+======================================================================
+SAI_5929.jpg | QueryFace=3 | DB Face=2 | Similarity=0.8027
+
+======================================================================
+PostgreSQL connection closed.
+Search completed.
+======================================================================
+======================================================================
+AI FACE SEARCH - 9 PHOTO BATCH TEST
+======================================================================
+Test photos: 9
+
+======================================================================
+TESTING: test1.jpg
+======================================================================
+
+======================================================================
+TESTING: test2.jpg
+======================================================================
+
+======================================================================
+TESTING: test3.jpg
+======================================================================
+
+======================================================================
+TESTING: test4.jpg
+======================================================================
+
+======================================================================
+TESTING: test5.jpg
+======================================================================
+
+======================================================================
+TESTING: test6.jpg
+======================================================================
+
+======================================================================
+TESTING: test7.jpg
+======================================================================
+
+======================================================================
+TESTING: test8.jpg
+======================================================================
+
+======================================================================
+TESTING: test9.jpg
+======================================================================
+
+======================================================================
+BATCH TEST SUMMARY
+======================================================================
+test1.jpg            SUCCESS
+test2.jpg            SUCCESS
+test3.jpg            SUCCESS
+test4.jpg            SUCCESS
+test5.jpg            SUCCESS
+test6.jpg            SUCCESS
+test7.jpg            SUCCESS
+test8.jpg            SUCCESS
+test9.jpg            SUCCESS
+
+Successful : 9
+Errors     : 0
+
+======================================================================
+BATCH TEST COMPLETED
+======================================================================
