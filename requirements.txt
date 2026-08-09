@@ -1,9 +1,8 @@
 streamlit
-opencv-python-headless>=4.9.0.80
-numpy>=1.26.4,<2.0
-insightface>=0.7.3
-onnxruntime>=1.24.1
+opencv-python-headless
+numpy
+insightface
+onnxruntime
 qrcode[pil]
 pandas
 faiss-cpu
-setuptools
