@@ -429,7 +429,7 @@ elif option == "📱 Generate QR Code":
             
             col1, col2 = st.columns([1, 1])
             with col1:
-                st.image(qr_img_array, caption=f"Scan for: {selected_event}", use_container_width=False)
+                st.image(qr_img_array, caption=f"Scan for: {selected_event}", width='stretch'=False)
                 st.success(f"📎 URL: {url}")
                 st.caption("📌 Phone must be on SAME Wi-Fi.")
                 
