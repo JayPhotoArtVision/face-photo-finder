@@ -26,6 +26,29 @@ TEMP_DIR = r"G:\AI Face Photo Finder\temp_files"
 os.makedirs(TEMP_DIR, exist_ok=True)
 tempfile.tempdir = TEMP_DIR
 # ============================================================
+# PASSWORD PROTECTION (ફક્ત મેનેજમેન્ટ પેજ માટે)
+# ============================================================
+def check_password():
+    """Returns `True` if the user is authorized to access management pages."""
+    # જો પાસવર્ડ પહેલેથી વેરિફાય થઈ ગયો હોય
+    if st.session_state.get("authenticated", False):
+        return True
+
+    # પાસવર્ડ ઇનપુટ બોક્સ બતાવો
+    st.sidebar.markdown("---")
+    password = st.sidebar.text_input("🔒 Admin Password:", type="password", key="admin_pass")
+    
+    if password:
+        # સાચો પાસવર્ડ ચેક કરો (st.secrets માંથી)
+        if password == st.secrets["admin_password"]:
+            st.session_state.authenticated = True
+            st.sidebar.success("✅ Access Granted!")
+            return True
+        else:
+            st.sidebar.error("❌ Incorrect Password!")
+            return False
+    return False
+# ============================================================
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -81,13 +104,18 @@ def load_event_faiss_index(event_name):
 app = load_insightface()
 
 # ============================================================
-# SIDEBAR NAVIGATION
+# SIDEBAR NAVIGATION (પાસવર્ડ સાથે)
 # ============================================================
+# પહેલાં પેજ સિલેક્ટ કરો
 option = st.sidebar.selectbox(
     "Select Page",
-    ["📂 Manage Events", "🔍 Search Face", "📱 Generate QR Code", "📊 Benchmark Results"]
+    ["🔍 Search Face", "📂 Manage Events", "📱 Generate QR Code", "📊 Benchmark Results"]
 )
 
+# જો વપરાશકર્તા 'Manage Events' અથવા 'Generate QR Code' પસંદ કરે તો પાસવર્ડ ચેક કરો
+if option in ["📂 Manage Events", "📱 Generate QR Code"]:
+    if not check_password():
+        st.stop()  # અહીં એપ રોકાઈ જાય, અને ફક્ત સાઇડબારમાં પાસવર્ડ બોક્સ દેખાય
 # ============================================================
 # PAGE 1: MANAGE EVENTS
 # ============================================================
