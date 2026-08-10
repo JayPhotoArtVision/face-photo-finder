@@ -423,7 +423,7 @@ elif option == "📱 Generate QR Code":
         
         if selected_event:
             clean_event = selected_event.replace(" ", "_")
-            url = f"http://{local_ip}:{port}/?event={clean_event}"
+            url = f"http://face-photo-finder-v10.streamlit.app/?event={clean_event}"
             qr_img = qrcode.make(url)
             qr_img_array = np.array(qr_img.convert('RGB'))
             
