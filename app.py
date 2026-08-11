@@ -15,6 +15,22 @@ from face_search import find_best_global_assignment
 from PIL import Image
 import pandas as pd
 
+def parse_embedding(embedding_data):
+    """સુરક્ષિત રીતે embedding ને numpy array માં કન્વર્ટ કરો"""
+    if embedding_data is None:
+        return None
+    if isinstance(embedding_data, str):
+        # JSON સ્ટ્રિંગ હોય તો પાર્સ કરો
+        try:
+            import json
+            embedding_data = json.loads(embedding_data)
+        except:
+            return None
+    if isinstance(embedding_data, list):
+        return np.array(embedding_data, dtype=np.float32)
+    if isinstance(embedding_data, np.ndarray):
+        return embedding_data
+    return None
 # ============================================================
 # PAGE CONFIG
 # ============================================================
@@ -69,16 +85,20 @@ def get_events_list():
     return [d for d in os.listdir("events") if os.path.isdir(os.path.join("events", d))]
 
 def load_event_data(event_name):
-    """ઇવેન્ટનો ડેટા લોડ કરો (પાસવર્ડ + ફોટા)"""
     path = os.path.join("events", event_name, "data.json")
     if not os.path.exists(path):
-        # જો ફાઇલ ન હોય તો ખાલી ડેટા પાછો આપો
         return {"password": "", "faces": []}
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    # જો જૂનો ડેટા (ફક્ત faces ની લિસ્ટ) હોય તો તેને નવા ફોર્મેટમાં કન્વર્ટ કરો
     if isinstance(data, list):
-        return {"password": "", "faces": data}
+        data = {"password": "", "faces": data}
+    # દરેક ફોટાના એમ્બેડિંગને પાર્સ કરો (જો જરૂર હોય તો)
+    for face in data.get("faces", []):
+        if "embedding" in face and isinstance(face["embedding"], str):
+            try:
+                face["embedding"] = json.loads(face["embedding"])
+            except:
+                face["embedding"] = []
     return data
 
 def save_event_data(event_name, data):
@@ -218,7 +238,9 @@ if option == "📂 Manage Events":
                         
                         if existing_data:
                             for item in existing_data:
-                                db_emb = np.array(item["embedding"])
+                                 db_emb = parse_embedding(item.get("embedding"))
+                                 if db_emb is None:
+                                      continue  # જો embedding યોગ્ય ન હોય તો આ ફોટાને અવગણો
                                 similarity = float(np.dot(embedding, db_emb))
                                 if similarity > best_score:
                                     best_score = similarity
