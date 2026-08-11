@@ -339,7 +339,7 @@ elif option == "🔍 Search Face":
                 st.sidebar.success(f"✅ {len(db_data)} faces indexed with FAISS")
                 st.sidebar.info(f"👤 Persons found: {', '.join(persons_list)}")
                 
-                uploaded_file = st.file_uploader("Choose a photo...", type=["jpg", "jpeg", "png"])
+                uploaded_file = st.camera_input("📸 Take a selfie to find your photos")
                 
                 if uploaded_file is not None:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
