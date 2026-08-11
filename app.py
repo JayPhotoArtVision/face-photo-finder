@@ -283,30 +283,34 @@ if option == "📂 Manage Events":
                                 )
                                 st.session_state.pending_faces[idx]["label"] = label
                 
-                if st.button("💾 Save All Labels to Event"):
-                    existing_data = load_event_data(selected_event)
-                    count = 0
-                    for face_data in st.session_state.pending_faces:
-                        if face_data["label"].strip() != "SKIP" and face_data["label"].strip() != "":
-                            existing_data.append({
-                                "filename": face_data["original_filename"],
-                                "person_label": face_data["label"].strip(),
-                                "embedding": face_data["embedding"]
-                            })
-                            count += 1
-                    
-                    save_event_data(selected_event, existing_data)
-                    
-                    for face_data in st.session_state.pending_faces:
-                        try:
-                            os.remove(face_data["crop_path"])
-                        except:
-                            pass
-                    
-                    st.session_state.pending_faces = []
-                    st.cache_resource.clear()
-                    st.success(f"✅ Saved {count} labeled faces to '{selected_event}'!")
-                    st.rerun()
+                                if st.button("💾 Save All Labels to Event"):
+                                    existing_data = load_event_data(selected_event)
+                                    existing_faces = existing_data.get("faces", [])
+                                    count = 0
+                                    
+                                    for face_data in st.session_state.pending_faces:
+                                        if face_data["label"].strip() != "SKIP" and face_data["label"].strip() != "":
+                                            existing_faces.append({
+                                                "filename": face_data["original_filename"],
+                                                "person_label": face_data["label"].strip(),
+                                                "embedding": face_data["embedding"]
+                                            })
+                                            count += 1
+                                    
+                                    # ડેટા સેવ કરો
+                                    existing_data["faces"] = existing_faces
+                                    save_event_data(selected_event, existing_data)
+                                    
+                                    for face_data in st.session_state.pending_faces:
+                                        try:
+                                            os.remove(face_data["crop_path"])
+                                        except:
+                                            pass
+                                    
+                                    st.session_state.pending_faces = []
+                                    st.cache_resource.clear()
+                                    st.success(f"✅ Saved {count} labeled faces to '{selected_event}'!")
+                                    st.rerun()
             
                         # ===== હાલનો ડેટા બતાવો (ટેક્સ્ટ + થંબનેઇલ) =====
             st.divider()
