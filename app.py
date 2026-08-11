@@ -229,30 +229,31 @@ if option == "📂 Manage Events":
                         
                         embedding = face.embedding / np.linalg.norm(face.embedding)
                         
-                        # ---- સ્માર્ટ લેબલ સજેશન (Auto-detect) ----
+                                              # ---- સ્માર્ટ લેબલ સજેશન (Auto-detect) ----
                         suggested_label = "SKIP"
-                        best_score = 0.30  # આ થ્રેશોલ્ડ છે (0.30 થી વધુ સ્કોર પર લેબલ સજેસ્ટ કરશે)
+                        best_score = 0.30
                         
                         # ઇવેન્ટમાં પહેલેથી સેવ થયેલા ફોટા લોડ કરો
-                        existing_data = load_event_data(selected_event)
+                        event_data = load_event_data(selected_event)
+                        existing_data = event_data.get("faces", [])
                         
                         if existing_data:
-                 for item in existing_data:
-                    db_emb = np.array(item["embedding"])
-                    similarity = float(np.dot(embedding, db_emb))
-                    if similarity > best_score:
-                        best_score = similarity
-                        suggested_label = item["person_label"]
+                            for item in existing_data:
+                                db_emb = np.array(item["embedding"])
+                                similarity = float(np.dot(embedding, db_emb))
+                                if similarity > best_score:
+                                    best_score = similarity
+                                    suggested_label = item["person_label"]
                         
                         # જો સ્કોર 0.70 (એટલે 70%) થી વધુ હોય તો જ લેબલ સજેસ્ટ કરો, નહીં તો SKIP
-                        if best_score < 0.40:
-                             suggested_label = "SKIP"
+                        if best_score < 0.70:
+                            suggested_label = "SKIP"
                         
                         st.session_state.pending_faces.append({
                             "crop_path": crop_path,
                             "embedding": embedding.tolist(),
                             "original_filename": unique_name,
-                            "label": suggested_label  # આપમેળે સજેસ્ટ થયેલ લેબલ
+                            "label": suggested_label
                         })
                     
                     progress_bar.progress((i + 1) / total_files)
