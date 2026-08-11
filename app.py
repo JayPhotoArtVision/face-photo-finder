@@ -237,9 +237,9 @@ if option == "📂 Manage Events":
                         existing_data = load_event_data(selected_event)
                         
                         if existing_data:
-                            for item in existing_data:
-                                 db_emb = parse_embedding(item.get("embedding"))
-                                 if db_emb is None:
+                           for item in existing_data:
+                                db_emb = parse_embedding(item.get("embedding"))
+                                if db_emb is None:
                                       continue  # જો embedding યોગ્ય ન હોય તો આ ફોટાને અવગણો
                                 similarity = float(np.dot(embedding, db_emb))
                                 if similarity > best_score:
