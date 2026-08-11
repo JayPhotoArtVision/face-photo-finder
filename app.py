@@ -264,7 +264,7 @@ if option == "📂 Manage Events":
                 st.rerun()
             
             # ---------- LABELING SECTION (Text Input) ----------
-           if 'pending_faces' in st.session_state and st.session_state.pending_faces:
+if 'pending_faces' in st.session_state and st.session_state.pending_faces:
     st.subheader(f"🏷️ Label {len(st.session_state.pending_faces)} detected faces")
     st.caption("Enter a name or letter (e.g., Rajesh, Priya, A, B, C). Use SKIP to ignore.")
     
