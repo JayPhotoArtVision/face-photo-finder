@@ -387,25 +387,39 @@ elif option == "🔍 Search Face":
                                             match["decision"] = "WEAK"
                                 
                                 st.subheader("📸 Your Matched Photos")
-                                filtered = [m for m in result if m is not None and m['similarity'] > 0.30]
-                                filtered.sort(key=lambda x: int(x['query_face'].split('_')[1]))
                                 
-                                if filtered:
-                                    for i in range(0, len(filtered), 3):
-                                        cols = st.columns(3)
-                                        for j, col in enumerate(cols):
-                                            idx = i + j
-                                            if idx < len(filtered):
-                                                match = filtered[idx]
-                                                img_path = os.path.join("events", event_name, "images", match['filename'])
-                                                with col:
-                                                    try:
-                                                        st.image(img_path, caption=f"Person {match['person']}", width=150)
-                                                    except:
-                                                        st.write(f"📁 {match['filename']}")
-                                                    st.metric("Score", f"{match['similarity']:.2f}", match['decision'])
+                                # 1. સૌપ્રથમ ઓળખો કે અપલોડ કરેલા ફોટામાં કઈ વ્યક્તિઓ (Persons) મેચ થઈ છે (અને જેનો સ્કોર 0.30 થી વધારે છે)
+                                matched_persons = set()
+                                for match in result:
+                                    if match is not None and match['similarity'] > 0.30:
+                                        matched_persons.add(match['person'])
+                                
+                                # 2. જો કોઈ વ્યક્તિ મેચ થઈ હોય, તો તે વ્યક્તિના **બધા જ** ફોટા બતાવો
+                                if matched_persons:
+                                    for person in matched_persons:
+                                        st.markdown(f"**Person: {person}**")
+                                        
+                                        # આ વ્યક્તિના બધા ફોટા ડેટાબેઝ (db_faces) માંથી શોધો
+                                        person_photos = [item for item in db_faces if item["person_label"] == person]
+                                        
+                                        if person_photos:
+                                            # ફોટાને 4 કોલમની ગ્રીડમાં બતાવો
+                                            for i in range(0, len(person_photos), 4):
+                                                cols = st.columns(4)
+                                                for j, col in enumerate(cols):
+                                                    idx = i + j
+                                                    if idx < len(person_photos):
+                                                        item = person_photos[idx]
+                                                        img_path = os.path.join("events", event_name, "images", item["filename"])
+                                                        with col:
+                                                            try:
+                                                                st.image(img_path, width=150)
+                                                            except:
+                                                                st.write(f"📁 {item['filename']}")
+                                        else:
+                                            st.write("No photos found for this person.")
                                 else:
-                                    st.info("No strong matches found.")
+                                    st.info("No strong matches found (score > 0.30).")
 
 # ============================================================
 # PAGE 3: GENERATE QR CODE
