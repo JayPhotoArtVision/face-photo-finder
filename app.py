@@ -14,6 +14,8 @@ from insightface.app import FaceAnalysis
 from face_search import find_best_global_assignment
 from PIL import Image
 import pandas as pd
+import os
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 
 def parse_embedding(embedding_data):
     """સુરક્ષિત રીતે embedding ને numpy array માં કન્વર્ટ કરો"""
