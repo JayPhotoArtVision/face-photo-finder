@@ -400,7 +400,7 @@ elif option == "🔍 Search Face":
                                         st.markdown(f"**Person: {person}**")
                                         
                                         # આ વ્યક્તિના બધા ફોટા ડેટાબેઝ (db_faces) માંથી શોધો
-                                        person_photos = [item for item in db_faces if item["person_label"] == person]
+                                        person_photos = [item for item in db_data if item["person_label"] == person]
                                         
                                         if person_photos:
                                             # ફોટાને 4 કોલમની ગ્રીડમાં બતાવો
