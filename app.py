@@ -69,22 +69,24 @@ def get_events_list():
     return [d for d in os.listdir("events") if os.path.isdir(os.path.join("events", d))]
 
 def load_event_data(event_name):
+    """ઇવેન્ટનો ડેટા લોડ કરો (પાસવર્ડ + ફોટા)"""
     path = os.path.join("events", event_name, "data.json")
     if not os.path.exists(path):
-        return []
+        # જો ફાઇલ ન હોય તો ખાલી ડેટા પાછો આપો
+        return {"password": "", "faces": []}
     with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    # જો જૂનો ડેટા (ફક્ત faces ની લિસ્ટ) હોય તો તેને નવા ફોર્મેટમાં કન્વર્ટ કરો
+    if isinstance(data, list):
+        return {"password": "", "faces": data}
+    return data
 
 def save_event_data(event_name, data):
-    try:
-        os.makedirs(os.path.join("events", event_name), exist_ok=True)
-        path = os.path.join("events", event_name, "data.json")
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        return True
-    except Exception as e:
-        st.error(f"❌ Error saving event: {e}")
-        return False
+    """ઇવેન્ટનો ડેટા સેવ કરો (પાસવર્ડ + ફોટા)"""
+    os.makedirs(os.path.join("events", event_name), exist_ok=True)
+    path = os.path.join("events", event_name, "data.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
 @st.cache_resource
 def load_insightface():
@@ -324,7 +326,28 @@ elif option == "🔍 Search Face":
         if not os.path.exists(event_folder):
             st.error(f"❌ Event '{event_name}' not found.")
         else:
+            # ====== EVENT PASSWORD CHECK ======
+            # શું પાસવર્ડ પહેલેથી session માં સેવ છે?
+            if f"auth_{event_name}" not in st.session_state:
+                st.session_state[f"auth_{event_name}"] = False
+            
+            if not st.session_state[f"auth_{event_name}"]:
+                st.header(f"🔒 Enter Password for: {event_name}")
+                entered_password = st.text_input("Event Password:", type="password")
+                if st.button("Access Event"):
+                    # ઇવેન્ટ ડેટા લોડ કરો
+                    event_data = load_event_data(event_name)
+                    if event_data.get("password") == entered_password:
+                        st.session_state[f"auth_{event_name}"] = True
+                        st.success("✅ Access Granted!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect Password!")
+                st.stop()  # અહીં એપ રોકાઈ જાય, ફોટા લોડ ન થાય
+            
+            # ====== જો પાસવર્ડ સાચો હોય તો આગળ વધો ======
             st.header(f"🔍 Searching photos for: {event_name}")
+            # ... બાકીનો આખો કોડ (ફોટા લોડ કરવો, search વગેરે) ...
             
             index, db_data = load_event_faiss_index(event_name)
             
