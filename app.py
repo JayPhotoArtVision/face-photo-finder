@@ -237,14 +237,12 @@ if option == "📂 Manage Events":
                         existing_data = load_event_data(selected_event)
                         
                         if existing_data:
-                           for item in existing_data:
-                                db_emb = parse_embedding(item.get("embedding"))
-                                if db_emb is None:
-                                      continue  # જો embedding યોગ્ય ન હોય તો આ ફોટાને અવગણો
-                                similarity = float(np.dot(embedding, db_emb))
-                                if similarity > best_score:
-                                    best_score = similarity
-                                    suggested_label = item["person_label"]
+                 for item in existing_data:
+                    db_emb = np.array(item["embedding"])
+                    similarity = float(np.dot(embedding, db_emb))
+                    if similarity > best_score:
+                        best_score = similarity
+                        suggested_label = item["person_label"]
                         
                         # જો સ્કોર 0.70 (એટલે 70%) થી વધુ હોય તો જ લેબલ સજેસ્ટ કરો, નહીં તો SKIP
                         if best_score < 0.40:
@@ -314,15 +312,22 @@ if option == "📂 Manage Events":
             data = load_event_data(selected_event)
             st.write(f"📊 Total labeled faces in this event: **{len(data)}**")
             
-            if len(data) > 0:
+                       # ===== હાલનો ડેટા બતાવો (થંબનેઇલ + ટેક્સ્ટ) =====
+            st.divider()
+            event_data = load_event_data(selected_event)  # આ ડિક્શનરી છે
+            faces_list = event_data.get("faces", [])     # ફક્ત 'faces' ભાગ લો
+            
+            st.write(f"📊 Total labeled faces in this event: **{len(faces_list)}**")
+            
+            if len(faces_list) > 0:
                 st.subheader("🖼️ Labeled Photos (Thumbnails)")
                 # દરેક ૪ ઇમેજની ગ્રીડ (Grid) માં બતાવો
-                for i in range(0, len(data), 4):
+                for i in range(0, len(faces_list), 4):
                     cols = st.columns(4)
                     for j, col in enumerate(cols):
                         idx = i + j
-                        if idx < len(data):
-                            item = data[idx]
+                        if idx < len(faces_list):
+                            item = faces_list[idx]  # હવે item યોગ્ય રીતે મળશે
                             # ફોટાનો પાથ બનાવો
                             img_path = os.path.join("events", selected_event, "images", item["filename"])
                             with col:
@@ -333,7 +338,6 @@ if option == "📂 Manage Events":
                                     st.write(f"❌ {item['filename']}")
             else:
                 st.info("No faces labeled yet in this event.")
-
 # ============================================================
 # PAGE 2: SEARCH FACE (FAISS + Dynamic Labels)
 # ============================================================
