@@ -76,10 +76,15 @@ def load_event_data(event_name):
         return json.load(f)
 
 def save_event_data(event_name, data):
-    os.makedirs(os.path.join("events", event_name), exist_ok=True)
-    path = os.path.join("events", event_name, "data.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+    try:
+        os.makedirs(os.path.join("events", event_name), exist_ok=True)
+        path = os.path.join("events", event_name, "data.json")
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        return True
+    except Exception as e:
+        st.error(f"❌ Error saving event: {e}")
+        return False
 
 @st.cache_resource
 def load_insightface():
@@ -218,8 +223,8 @@ if option == "📂 Manage Events":
                                     suggested_label = item["person_label"]
                         
                         # જો સ્કોર 0.70 (એટલે 70%) થી વધુ હોય તો જ લેબલ સજેસ્ટ કરો, નહીં તો SKIP
-                        if best_score < 0.70:
-                            suggested_label = "SKIP"
+                        if best_score < 0.40:
+                             suggested_label = "SKIP"
                         
                         st.session_state.pending_faces.append({
                             "crop_path": crop_path,
