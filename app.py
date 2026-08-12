@@ -799,10 +799,10 @@ elif option == "🔍 ફોટો શોધો":
                                         
                                         # દરેક કાર્ટ આઇટમ બતાવો
                                         for idx, item in enumerate(cart):
-                                    if item['price'] == 0:
-                                        st.sidebar.write(f"{idx+1}. {item['person']} - 🆓 FREE")
-                                    else:
-                                        st.sidebar.write(f"{idx+1}. {item['person']} - ₹{item['price']}")
+                                        if item['price'] == 0:
+                                            st.sidebar.write(f"{idx+1}. {item['person']} - 🆓 FREE")
+                                        else:
+                                            st.sidebar.write(f"{idx+1}. {item['person']} - ₹{item['price']}")
                                         
                                         st.sidebar.markdown(f"### 💰 કુલ: ₹{total_price}")
                                         
