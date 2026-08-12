@@ -29,172 +29,176 @@ st.set_page_config(
 # કસ્ટમ CSS
 st.markdown("""
 <style>
-    /* ===== તમારા બ્રાન્ડ રંગો ===== */
+    /* ===== Google Font (Premium Look) ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+    
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ===== મુખ્ય રંગો ===== */
     :root {
-        --primary: #1a1a2e;      /* ડાર્ક - હેડર માટે */
-        --secondary: #e94560;    /* લાલ-ગુલાબી - એક્સેન્ટ */
-        --accent: #f5a623;       /* સોનેરી - હાઇલાઇટ */
-        --light: #f8f9fa;        /* હળવો - બેકગ્રાઉન્ડ */
-        --text: #2d3436;         /* ટેક્સ્ટ રંગ */
+        --primary-dark: #0f0f0f;
+        --primary-card: #ffffff;
+        --accent-gold: #d4af37;
+        --accent-red: #e63946;
+        --text-dark: #1a1a1a;
+        --text-light: #6c757d;
     }
-    
-    /* ===== હેડર ===== */
+
+    /* ===== હેડર (Header) ===== */
     .main-header {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        padding: 1.5rem 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        text-align: center;
-    }
-    .main-header h1 {
-        color: white;
-        font-size: 2.8rem;
-        font-weight: 700;
-        margin: 0;
-        letter-spacing: 1px;
-    }
-    .main-header .subtitle {
-        color: #f5a623;
-        font-size: 1.1rem;
-        margin-top: 5px;
-        font-weight: 300;
-    }
-    .main-header .tagline {
-        color: #adb5bd;
-        font-size: 0.9rem;
-        margin-top: 3px;
-    }
-    
-    /* ===== સાઇડબાર ===== */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-        padding-top: 2rem;
-    }
-    section[data-testid="stSidebar"] .stSelectbox label {
-        color: #f8f9fa !important;
-        font-weight: 600;
-    }
-    section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] {
-        background-color: rgba(255,255,255,0.1);
-        border-radius: 10px;
-    }
-    .sidebar-brand {
-        text-align: center;
-        padding: 1rem 0 2rem 0;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 2px solid #f0f0f0;
         margin-bottom: 2rem;
     }
-    .sidebar-brand .logo-text {
-        color: white;
+    .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .logo-area img {
+        height: 55px;
+        width: auto;
+        border-radius: 12px;
+    }
+    .brand-text h1 {
         font-size: 1.8rem;
+        font-weight: 800;
+        color: #0f0f0f;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+    .brand-text h1 span {
+        color: #d4af37;
+    }
+    .brand-text .tagline {
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: #6c757d;
+        margin: -5px 0 0 0;
+        letter-spacing: 0.3px;
+    }
+
+    /* ===== સાઇડબાર (Sidebar) ===== */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
+        padding: 2rem 1rem;
+    }
+    .sidebar-logo {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 1.5rem;
+    }
+    .sidebar-logo img {
+        width: 80%;
+        max-width: 180px;
+        border-radius: 16px;
+        background: white;
+        padding: 8px;
+        margin-bottom: 10px;
+    }
+    .sidebar-logo .brand-name {
+        color: white;
         font-weight: 700;
+        font-size: 1.2rem;
+        margin: 0;
     }
-    .sidebar-brand .logo-text span {
-        color: #f5a623;
+    .sidebar-logo .brand-name span {
+        color: #d4af37;
     }
-    .sidebar-brand .logo-sub {
-        color: #adb5bd;
-        font-size: 0.8rem;
-    }
-    
-    /* ===== કાર્ડ્સ ===== */
+
+    /* ===== કાર્ડ્સ (Cards) ===== */
     .card {
         background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+        border: 1px solid #f0f0f0;
+        border-radius: 24px;
+        padding: 1.8rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         margin-bottom: 1.5rem;
-        border: 1px solid rgba(0,0,0,0.04);
-        transition: transform 0.2s;
     }
     .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.08);
     }
     .card-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #1a1a2e;
-        margin-bottom: 0.5rem;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #0f0f0f;
+        margin-bottom: 0.3rem;
     }
     .card-desc {
-        color: #636e72;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        color: #6c757d;
+        line-height: 1.6;
     }
-    
-    /* ===== બટનો ===== */
+
+    /* ===== બટનો (Buttons) ===== */
     .stButton button {
-        background: linear-gradient(135deg, #e94560, #c0392b) !important;
+        background: linear-gradient(135deg, #0f0f0f 0%, #333333 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 30px !important;
-        padding: 0.6rem 2rem !important;
+        border-radius: 50px !important;
+        padding: 0.6rem 2.2rem !important;
         font-weight: 600 !important;
-        transition: all 0.3s !important;
-        box-shadow: 0 2px 12px rgba(233,69,96,0.3) !important;
+        font-size: 0.9rem !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+        transition: all 0.3s ease !important;
     }
     .stButton button:hover {
-        transform: scale(1.03);
-        box-shadow: 0 4px 20px rgba(233,69,96,0.5) !important;
+        transform: scale(1.02) !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
+        background: linear-gradient(135deg, #1a1a1a 0%, #444444 100%) !important;
     }
-    
-    /* ===== ફાઇલ અપલોડ ===== */
-    .stFileUploader {
-        border: 2px dashed #e94560 !important;
-        border-radius: 16px !important;
-        background: rgba(233,69,96,0.04) !important;
-        padding: 1rem !important;
-    }
-    .stFileUploader:hover {
-        background: rgba(233,69,96,0.08) !important;
-    }
-    
-    /* ===== ફોટા ગ્રીડ ===== */
-    .photo-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-    .photo-card {
-        background: white;
-        border-radius: 12px;
+
+    /* ===== ઇમેજ / ફોટા ===== */
+    .stImage {
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        transition: transform 0.2s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    /* ===== ફૂટર ===== */
+    .footer {
         text-align: center;
+        padding: 2rem 0 0.5rem 0;
+        margin-top: 3rem;
+        border-top: 1px solid #f0f0f0;
+        color: #adb5bd;
+        font-size: 0.8rem;
+        font-weight: 400;
     }
-    .photo-card:hover {
-        transform: scale(1.02);
+    .footer strong {
+        color: #0f0f0f;
+        font-weight: 700;
     }
-    .photo-card img {
-        width: 100%;
-        height: 150px;
-        object-fit: cover;
+    .footer span {
+        color: #d4af37;
     }
-    .photo-card .label {
-        padding: 0.5rem;
-        font-weight: 600;
-        color: #1a1a2e;
-        font-size: 0.85rem;
-    }
-    
-    /* ===== મોબાઇલ ફ્રેન્ડલી ===== */
+
+    /* ===== મોબાઇલ (Responsive) ===== */
     @media (max-width: 768px) {
-        .main-header h1 {
-            font-size: 1.8rem;
+        .logo-area img {
+            height: 40px;
         }
-        .main-header .subtitle {
-            font-size: 0.9rem;
+        .brand-text h1 {
+            font-size: 1.3rem;
         }
-        .photo-grid {
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        .brand-text .tagline {
+            font-size: 0.7rem;
         }
-        .stColumns {
-            gap: 0.5rem !important;
+        .main-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
         }
     }
+</style>
     
     /* ===== સ્ક્રોલબાર ===== */
     ::-webkit-scrollbar {
@@ -226,22 +230,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 🏠 HEADER - તમારો લોગો અને બ્રાન્ડ
+# 🏠 HEADER - પ્રોફેશનલ લેઆઉટ
 # ============================================================
-col1, col2 = st.columns([1, 6])  # 1 ભાગ લોગો માટે, 6 ભાગ ટેક્સ્ટ માટે
+col1, col2 = st.columns([1, 6])
+
 with col1:
     try:
-        st.image("assets/logo.jpg", width=70)  # અહીં તમારી ફાઈલનું નામ લખો
+        st.image("assets/logo.jpg", width=70)  # તમારો લોગો
     except:
-        st.write("📸")  # જો લોગો ના મળે તો ઇમોજી બતાવે
+        st.markdown("## 📸")
+
 with col2:
     st.markdown("""
-    <div class="main-header" style="background: transparent; padding: 0; box-shadow: none; text-align: left;">
-        <h1 style="color: #1a1a2e; font-size: 2.2rem; margin: 0;">જય ફોટો શોધ</h1>
-        <div class="subtitle" style="color: #e94560; font-size: 0.9rem;">✨ તમારા ઇવેન્ટના ફોટા શોધો અને ડાઉનલોડ કરો</div>
+    <div class="brand-text">
+        <h1>જય <span>ફોટો</span> શોધ</h1>
+        <div class="tagline">✨ AI દ્વારા તમારા ઇવેન્ટના યાદગાર ક્ષણો શોધો</div>
     </div>
     """, unsafe_allow_html=True)
-
 # ============================================================
 # ⚙️ HELPER FUNCTIONS
 # ============================================================
@@ -345,18 +350,12 @@ def check_password():
 # ============================================================
 # 🧭 SIDEBAR NAVIGATION
 # ============================================================
-st.sidebar.markdown("---")
-try:
-    st.sidebar.image("assets/logo.jpg", width=180)  # સાઇડબારમાં લોગો
-except:
-    st.sidebar.markdown("## 📸 જયફોટો")  # ફોલબેક
-
-st.sidebar.markdown("---")
-option = st.sidebar.selectbox(
-    "📌 પેજ પસંદ કરો",
-    ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 બેન્ચમાર્ક"],
-    format_func=lambda x: x
-)
+st.sidebar.markdown("""
+<div class="sidebar-logo">
+    <img src="https://raw.githubusercontent.com/JayPhotoArtVision/face-photo-finder/main/assets/logo.jpg" alt="Logo">
+    <div class="brand-name">જય <span>ફોટો</span></div>
+</div>
+""", unsafe_allow_html=True)
 
 # ============================================================
 # 📂 PAGE 1: MANAGE EVENTS (ઇવેન્ટ મેનેજ)
