@@ -404,7 +404,7 @@ elif option == "🔍 Search Face":
                 
                 uploaded_file = None
                 
-                                if upload_option == "📸 Take a selfie (Camera)":
+                if upload_option == "📸 Take a selfie (Camera)":
                     uploaded_file = st.camera_input("📸 Take a selfie", key="camera_input")
                 else:
                     uploaded_file = st.file_uploader(
@@ -412,22 +412,7 @@ elif option == "🔍 Search Face":
                         type=["jpg", "jpeg", "png"],
                         key="file_uploader"
                     )
-                
-                if uploaded_file is not None:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
-                        tmp_file.write(uploaded_file.read())
-                        tmp_path = tmp_file.name
-                    
-                    img = cv2.imread(tmp_path)
-                    if img is not None:
-                        st.image(img, channels="BGR", caption="Uploaded Image", width=300)
-                        with st.spinner("Searching with FAISS..."):
-                            # ... બાકીનો બધો કોડ એ જ રાખો ...
-                    if img is not None:
-                        st.image(img, channels="BGR", caption="Uploaded Image", width=300)
-                        with st.spinner("Searching with FAISS..."):
-                            # ... બાકીનો બધો કોડ એ જ રાખો (faces, query_embeddings, query_face_matches, result, display) ...
-                
+
                 if uploaded_file is not None:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
                         tmp_file.write(uploaded_file.read())
