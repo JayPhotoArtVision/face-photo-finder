@@ -799,10 +799,11 @@ elif option == "🔍 ફોટો શોધો":
                                         
                                         # દરેક કાર્ટ આઇટમ બતાવો
                                         for idx, item in enumerate(cart):
-                                        if item['price'] == 0:
-                                            st.sidebar.write(f"{idx+1}. {item['person']} - 🆓 FREE")
-                                        else:
-                                            st.sidebar.write(f"{idx+1}. {item['person']} - ₹{item['price']}")
+                                            # ===== આગળની લીટીઓ 4 Spaces થી ઇન્ડેન્ટ છે =====
+                                            if item['price'] == 0:
+                                                st.sidebar.write(f"{idx+1}. {item['person']} - 🆓 FREE")
+                                            else:
+                                                st.sidebar.write(f"{idx+1}. {item['person']} - ₹{item['price']}")
                                         
                                         st.sidebar.markdown(f"### 💰 કુલ: ₹{total_price}")
                                         
@@ -812,12 +813,10 @@ elif option == "🔍 ફોટો શોધો":
                                             st.rerun()
                                         
                                         # ===== "🧾 ચેકઆઉટ" બટન =====
-                                        if st.sidebar.button("🧾 ચેકઆઉટ (₹{total_price})"):
+                                        if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
                                             st.sidebar.success("✅ કાર્ટ સફળતાપૂર્વક ચેકઆઉટ થયું!")
                                             st.sidebar.info("💳 પેમેન્ટ ગેટવે અહીં આવશે (Razorpay/Stripe)")
-                                            # અહીં તમે Razorpay લિંક ઉમેરી શકો
-                                            # st.markdown(f"[Pay ₹{total_price} via Razorpay](https://rzp.io/l/your-link)")
-                                            # ચેકઆઉટ પછી કાર્ટ ખાલી કરો
+                                            # પેમેન્ટ પછી કાર્ટ ખાલી કરો
                                             # st.session_state.cart = []
                                     else:
                                         st.sidebar.info("🛒 કાર્ટ ખાલી છે")
