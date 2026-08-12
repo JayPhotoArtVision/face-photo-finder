@@ -151,7 +151,7 @@ if option in ["📂 Manage Events", "📱 Generate QR Code"]:
 if option == "📂 Manage Events":
     st.header("📂 Manage Events")
     
-        with st.expander("➕ Create New Event", expanded=False):
+    with st.expander("➕ Create New Event", expanded=False):
         new_event = st.text_input("Event Name (e.g., Sharma_Wedding)")
         
         # ===== 🔥 આ નવી લીટી ઉમેરો (Event Password) =====
