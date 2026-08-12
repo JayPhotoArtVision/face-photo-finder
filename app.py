@@ -704,7 +704,7 @@ elif option == "🔍 ફોટો શોધો":
                                         else:
                                             match["decision"] = "WEAK"
                                 
-                                                                st.subheader("📸 તમારા મેચ થયેલા ફોટા")
+                                st.subheader("📸 તમારા મેચ થયેલા ફોટા")
                                 matched_persons = set()
                                 for match in result:
                                     if match is not None and match['similarity'] > 0.30:
