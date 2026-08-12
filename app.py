@@ -151,21 +151,29 @@ if option in ["📂 Manage Events", "📱 Generate QR Code"]:
 if option == "📂 Manage Events":
     st.header("📂 Manage Events")
     
-    with st.expander("➕ Create New Event", expanded=False):
+        with st.expander("➕ Create New Event", expanded=False):
         new_event = st.text_input("Event Name (e.g., Sharma_Wedding)")
+        
+        # ===== 🔥 આ નવી લીટી ઉમેરો (Event Password) =====
+        event_password = st.text_input("🔒 Event Password (for customers)", type="password")
+        # ===================================================
+        
         if st.button("Create Event"):
-            if new_event.strip():
+            if new_event.strip() and event_password.strip():
                 event_folder = os.path.join("events", new_event.strip())
                 if os.path.exists(event_folder):
                     st.warning("Event already exists!")
                 else:
                     os.makedirs(event_folder)
                     os.makedirs(os.path.join(event_folder, "images"))
-                    save_event_data(new_event.strip(), [])
-                    st.success(f"✅ Event '{new_event}' created!")
+                    # ===== 🔥 પાસવર્ડ સાથે ડેટા સેવ કરો =====
+                    event_data = {"password": event_password, "faces": []}
+                    save_event_data(new_event.strip(), event_data)
+                    # ======================================
+                    st.success(f"✅ Event '{new_event}' created with password protection!")
                     st.rerun()
             else:
-                st.error("Please enter a name.")
+                st.error("Please enter both name and password.")
 
     events = get_events_list()
     if not events:
