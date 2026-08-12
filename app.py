@@ -439,31 +439,82 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                 status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
                 st.rerun()
             
+                        # ---------- SMART GROUP LABELING SECTION ----------
             if 'pending_faces' in st.session_state and st.session_state.pending_faces:
-                st.subheader(f"🏷️ {len(st.session_state.pending_faces)} ચહેરાઓને લેબલ આપો")
-                st.caption("દરેક ચહેરા માટે નામ અથવા અક્ષર લખો (દા.ત., રાજેશ, પ્રિયા, A, B). 'SKIP' લખવાથી તે ચહેરો અવગણાશે.")
+                st.subheader(f"🏷️ {len(st.session_state.pending_faces)} ચહેરાઓને સ્માર્ટ ગ્રૂપમાં ગોઠવો")
+                st.caption("🔍 સરખા દેખાતા ચહેરાઓ આપમેળે એક ગ્રૂપમાં ગોઠવાઈ ગયા છે. દરેક ગ્રૂપને એક નામ આપો.")
                 
+                # ===== ૧. ચહેરાઓને ગ્રૂપ (Cluster) કરો =====
                 pending = st.session_state.pending_faces
-                for i in range(0, len(pending), 4):
-                    cols = st.columns(4)
-                    for j, col in enumerate(cols):
-                        idx = i + j
-                        if idx < len(pending):
-                            face_data = pending[idx]
-                            with col:
-                                st.image(face_data["crop_path"], width=150)
-                                label = st.text_input(
-                                    f"ચહેરો {idx+1}",
-                                    value=face_data["label"],
-                                    key=f"label_{idx}"
-                                )
-                                st.session_state.pending_faces[idx]["label"] = label
+                embeddings = np.array([face["embedding"] for face in pending], dtype=np.float32)
                 
+                # કોસાઇન સિમિલેરિટી ગણો (Normalized vectors)
+                norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
+                norms[norms == 0] = 1  # શૂન્યથી બચવા
+                embeddings_norm = embeddings / norms
+                
+                # સિમિલેરિટી મેટ્રિક્સ (કોસાઇન સિમિલેરિટી)
+                sim_matrix = np.dot(embeddings_norm, embeddings_norm.T)
+                
+                # થ્રેશોલ્ડ 0.70 થી વધુ સ્કોરવાળા ચહેરાઓને ગ્રૂપ કરો
+                threshold = 0.70
+                n = len(pending)
+                visited = [False] * n
+                clusters = []  # દરેક ગ્રૂપમાં ઇન્ડેક્સની લિસ્ટ
+                
+                for i in range(n):
+                    if not visited[i]:
+                        # નવું ગ્રૂપ શરૂ કરો
+                        cluster = [i]
+                        visited[i] = True
+                        # i સાથે સિમિલેરિટી ધરાવતા બધા ચહેરા શોધો
+                        for j in range(i+1, n):
+                            if not visited[j] and sim_matrix[i][j] > threshold:
+                                cluster.append(j)
+                                visited[j] = True
+                        clusters.append(cluster)
+                
+                # ===== ૨. ગ્રૂપ્સ UI માં બતાવો =====
+                group_labels = []  # દરેક ગ્રૂપનું લેબલ સ્ટોર કરવા
+                
+                for group_idx, cluster in enumerate(clusters):
+                    st.markdown(f"### 🎯 ગ્રૂપ {group_idx + 1} (કુલ {len(cluster)} ચહેરા)")
+                    
+                    # આ ગ્રૂપના બધા ચહેરાઓને 4 કોલમમાં બતાવો
+                    cols = st.columns(min(4, len(cluster)))
+                    for col_idx, face_idx in enumerate(cluster):
+                        col = cols[col_idx % 4]
+                        with col:
+                            face_data = pending[face_idx]
+                            st.image(face_data["crop_path"], width=150)
+                    
+                    # ગ્રૂપ માટે લેબલ ઇનપુટ
+                    label_key = f"group_label_{group_idx}"
+                    group_label = st.text_input(
+                        f"ગ્રૂપ {group_idx + 1} ને નામ આપો",
+                        value="",
+                        key=label_key,
+                        placeholder="દા.ત., રાજેશ, પ્રિયા, A"
+                    )
+                    group_labels.append(group_label)
+                    
+                    # આ ગ્રૂપના બધા ચહેરાઓને આ લેબલ સોંપો (જો લેબલ ખાલી ન હોય તો)
+                    if group_label.strip():
+                        for face_idx in cluster:
+                            pending[face_idx]["label"] = group_label.strip()
+                    else:
+                        # જો લેબલ ખાલી હોય, તો SKIP રાખો
+                        for face_idx in cluster:
+                            pending[face_idx]["label"] = "SKIP"
+                    
+                    st.divider()
+                
+                # ===== ૩. Save બટન =====
                 if st.button("💾 બધા લેબલ સેવ કરો", key="save_all_labels"):
                     event_data = load_event_data(selected_event)
                     existing_faces = event_data.get("faces", [])
                     count = 0
-                    for face_data in st.session_state.pending_faces:
+                    for face_data in pending:
                         lbl = face_data["label"].strip()
                         if lbl != "SKIP" and lbl != "":
                             existing_faces.append({
@@ -475,7 +526,8 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                     event_data["faces"] = existing_faces
                     save_event_data(selected_event, event_data)
                     
-                    for face_data in st.session_state.pending_faces:
+                    # ટેમ્પ ફાઇલો ડિલીટ કરો
+                    for face_data in pending:
                         try:
                             os.remove(face_data["crop_path"])
                         except:
