@@ -315,7 +315,7 @@ if 'pending_faces' in st.session_state and st.session_state.pending_faces:
                     # ============================================================
             # EVENT DATA DISPLAY (Thumbnails + Labels)
             # ============================================================
-            st.divider()
+         st.divider()
             
             # ઇવેન્ટ ડેટા લોડ કરો
             event_data = load_event_data(selected_event)
