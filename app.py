@@ -787,8 +787,8 @@ elif option == "🔍 ફોટો શોધો":
                                         else:
                                             st.write("❌ આ વ્યક્તિના કોઈ ફોટા નથી.")
                                     
-                                    # ============================================================
-                                    # 🛒 CART DISPLAY (સાઇડબારમાં)
+                                                                        # ============================================================
+                                    # 🛒 CART DISPLAY + PAYMENT + SHARING
                                     # ============================================================
                                     st.sidebar.markdown("---")
                                     st.sidebar.markdown("## 🛒 તમારું કાર્ટ")
@@ -799,7 +799,6 @@ elif option == "🔍 ફોટો શોધો":
                                         
                                         # દરેક કાર્ટ આઇટમ બતાવો
                                         for idx, item in enumerate(cart):
-                                            # ===== આગળની લીટીઓ 4 Spaces થી ઇન્ડેન્ટ છે =====
                                             if item['price'] == 0:
                                                 st.sidebar.write(f"{idx+1}. {item['person']} - 🆓 FREE")
                                             else:
@@ -810,19 +809,94 @@ elif option == "🔍 ફોટો શોધો":
                                         # ===== "ખાલી કરો" બટન =====
                                         if st.sidebar.button("🗑️ કાર્ટ ખાલી કરો"):
                                             st.session_state.cart = []
+                                            st.session_state.payment_done = False
                                             st.rerun()
                                         
-                                        # ===== "🧾 ચેકઆઉટ" બટન =====
+                                        # ===== "🧾 ચેકઆઉટ" બટન (પેમેન્ટ) =====
                                         if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
-                                            st.sidebar.success("✅ કાર્ટ સફળતાપૂર્વક ચેકઆઉટ થયું!")
-                                            st.sidebar.info("💳 પેમેન્ટ ગેટવે અહીં આવશે (Razorpay/Stripe)")
-                                            # પેમેન્ટ પછી કાર્ટ ખાલી કરો
-                                            # st.session_state.cart = []
+                                            # ===== પેમેન્ટ ગેટવે (ડેમો) =====
+                                            st.sidebar.success("✅ પેમેન્ટ સફળ! (ડેમો મોડ)")
+                                            st.sidebar.info("💳 વાસ્તવિક પેમેન્ટ માટે Razorpay/Stripe ઉમેરો.")
+                                            # પેમેન્ટ સફળ થયા પછી ફ્લેગ સેટ કરો
+                                            st.session_state.payment_done = True
+                                            st.rerun()
+                                        
+                                        # ============================================================
+                                        # 🔓 પેમેન્ટ પછી જ ડાઉનલોડ + શેર બટન ખુલે
+                                        # ============================================================
+                                        if st.session_state.get("payment_done", False):
+                                            st.sidebar.markdown("---")
+                                            st.sidebar.markdown("## 📥 તમારા ફોટા ડાઉનલોડ કરો")
+                                            
+                                            # ===== "બધા ડાઉનલોડ કરો" બટન =====
+                                            if st.sidebar.button("📥 બધા ફોટા ડાઉનલોડ કરો (ZIP)"):
+                                                import zipfile
+                                                import io
+                                                zip_buffer = io.BytesIO()
+                                                with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                                                    for item in cart:
+                                                        img_path = item["img_path"]
+                                                        if os.path.exists(img_path):
+                                                            zip_file.write(img_path, item["filename"])
+                                                zip_buffer.seek(0)
+                                                st.sidebar.download_button(
+                                                    label="📥 ZIP ડાઉનલોડ કરો",
+                                                    data=zip_buffer,
+                                                    file_name="my_photos.zip",
+                                                    mime="application/zip",
+                                                    key="zip_download_final"
+                                                )
+                                            
+                                            # ===== દરેક ફોટો અલગથી ડાઉનલોડ =====
+                                            for idx, item in enumerate(cart):
+                                                img_path = item["img_path"]
+                                                if os.path.exists(img_path):
+                                                    with open(img_path, "rb") as f:
+                                                        st.sidebar.download_button(
+                                                            label=f"📸 {item['filename']} ડાઉનલોડ કરો",
+                                                            data=f,
+                                                            file_name=item["filename"],
+                                                            mime="image/jpeg",
+                                                            key=f"final_dl_{idx}"
+                                                        )
+                                            
+                                            # ============================================================
+                                            # 📤 SOCIAL MEDIA SHARING
+                                            # ============================================================
+                                            st.sidebar.markdown("---")
+                                            st.sidebar.markdown("## 📤 તમારા ફોટા શેર કરો")
+                                            
+                                            # એપ લિંક (તમારી એપની લિંક)
+                                            app_url = "https://jayphotofinder.streamlit.app"
+                                            share_text = "🌟 મારા ઇવેન્ટના સુંદર ફોટા જુઓ! જય ફોટો શોધ દ્વારા શોધ્યા."
+                                            
+                                            # WhatsApp
+                                            whatsapp_url = f"https://api.whatsapp.com/send?text={share_text} {app_url}"
+                                            st.sidebar.markdown(f"[![WhatsApp](https://img.icons8.com/color/48/000000/whatsapp.png)]({whatsapp_url}) શેર કરો")
+                                            
+                                            # Facebook
+                                            facebook_url = f"https://www.facebook.com/sharer/sharer.php?u={app_url}"
+                                            st.sidebar.markdown(f"[![Facebook](https://img.icons8.com/color/48/000000/facebook.png)]({facebook_url}) શેર કરો")
+                                            
+                                            # Instagram (Direct share not possible, so copy link)
+                                            st.sidebar.markdown("📸 **Instagram:** લિંક કોપી કરીને પેસ્ટ કરો")
+                                            if st.sidebar.button("📋 લિંક કોપી કરો"):
+                                                st.sidebar.code(app_url)
+                                                st.sidebar.success("✅ લિંક કોપી થઈ ગઈ!")
+                                            
+                                            # Email
+                                            email_url = f"mailto:?subject=મારા ફોટા જુઓ&body={share_text} {app_url}"
+                                            st.sidebar.markdown(f"[![Email](https://img.icons8.com/color/48/000000/gmail.png)]({email_url}) ઈમેઈલ દ્વારા શેર કરો")
+                                            
+                                            # ===== "કાર્ટ ખાલી કરો" (ડાઉનલોડ પછી) =====
+                                            if st.sidebar.button("✅ ડાઉનલોડ થઈ ગયા! કાર્ટ ખાલી કરો"):
+                                                st.session_state.cart = []
+                                                st.session_state.payment_done = False
+                                                st.rerun()
+                                    
                                     else:
                                         st.sidebar.info("🛒 કાર્ટ ખાલી છે")
-                                
-                                else:
-                                    st.info("ℹ️ 30% થી વધુ સ્કોરવાળા કોઈ ફોટા નથી.")
+                                        st.session_state.payment_done = False
 
 # ============================================================
 # PAGE 3: GENERATE QR CODE
