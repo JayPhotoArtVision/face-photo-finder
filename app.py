@@ -231,7 +231,7 @@ st.markdown("""
 col1, col2 = st.columns([1, 6])  # 1 ભાગ લોગો માટે, 6 ભાગ ટેક્સ્ટ માટે
 with col1:
     try:
-        st.image("assets/logo.png", width=70)  # અહીં તમારી ફાઈલનું નામ લખો
+        st.image("assets/logo.jpg", width=70)  # અહીં તમારી ફાઈલનું નામ લખો
     except:
         st.write("📸")  # જો લોગો ના મળે તો ઇમોજી બતાવે
 with col2:
@@ -347,7 +347,7 @@ def check_password():
 # ============================================================
 st.sidebar.markdown("---")
 try:
-    st.sidebar.image("assets/logo.png", width=180)  # સાઇડબારમાં લોગો
+    st.sidebar.image("assets/logo.jpg", width=180)  # સાઇડબારમાં લોગો
 except:
     st.sidebar.markdown("## 📸 જયફોટો")  # ફોલબેક
 
