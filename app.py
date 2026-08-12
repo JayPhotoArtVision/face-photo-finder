@@ -15,6 +15,9 @@ from face_search import find_best_global_assignment
 from PIL import Image
 import pandas as pd
 
+# ===== ફોટા ડાઉનલોડની ફિક્સ્ડ કિંમત (બધા ફોટા માટે સરખી) =====
+PHOTO_PRICE = 10  # અહીં તમને ગમે તે કિંમત લખો (દા.ત., 10, 25, 50, 100)
+
 # ============================================================
 # ENVIRONMENT VARIABLE (OpenCV માટે)
 # ============================================================
@@ -701,35 +704,25 @@ elif option == "🔍 ફોટો શોધો":
                                         else:
                                             match["decision"] = "WEAK"
                                 
-                                st.subheader("📸 તમારા મેચ થયેલા ફોટા")
+                                                                st.subheader("📸 તમારા મેચ થયેલા ફોટા")
                                 matched_persons = set()
                                 for match in result:
                                     if match is not None and match['similarity'] > 0.30:
                                         matched_persons.add(match['person'])
                                 
                                 if matched_persons:
+                                    # ============================================================
+                                    # 🛒 CART SYSTEM - ફોટા સિલેક્ટ કરવા અને કુલ કિંમત બતાવવા
+                                    # ============================================================
+                                    
+                                    # ---- ૧. દરેક વ્યક્તિના ફોટા બતાવો ----
                                     for person in matched_persons:
                                         st.markdown(f"**👤 વ્યક્તિ: {person}**")
                                         
                                         person_photos = [item for item in db_data if item["person_label"] == person]
                                         
                                         if person_photos:
-                                            # ======================================================
-                                            # 🔥 તમે અહીં બધા ફેરફારો કરી શકો છો
-                                            # ======================================================
-                                            
-                                            # ---- ૧. કયા ફોટા ફ્રી છે તે નક્કી કરો ----
-                                            # અહીં તમે તમારી ઇચ્છા મુજબ લોજિક લખી શકો છો
-                                            # ઉદાહરણો:
-                                            # is_free = True  # બધા ફોટા ફ્રી
-                                            # is_free = (person == "રાજેશ")  # ફક્ત રાજેશના ફોટા ફ્રી
-                                            # is_free = (idx < 3)  # પહેલા ૩ ફોટા ફ્રી
-                                            # is_free = (item['similarity'] > 0.80)  # 80% થી વધુ ચોકસાઈવાળા ફોટા ફ્રી
-                                            
-                                            # ---- ૨. કિંમત (Price) નક્કી કરો ----
-                                            price = 10  # ₹10 (તમે ગમે તેટલા રૂપિયા રાખી શકો)
-                                            
-                                            # ---- ૩. દરેક ફોટો બતાવો અને ડાઉનલોડ બટન આપો ----
+                                            # દરેક ફોટા માટે ચેકબોક્સ + કિંમત
                                             for idx, item in enumerate(person_photos):
                                                 img_path = os.path.join("events", event_name, "images", item["filename"])
                                                 
@@ -744,70 +737,89 @@ elif option == "🔍 ફોટો શોધો":
                                                     except:
                                                         st.write(f"📁 {item['filename']}")
                                                     
-                                                    # ===== તમારી ઇચ્છા મુજબ લોજિક અહીં લખો =====
-                                                    # ઉદાહરણ તરીકે: પહેલા 2 ફોટા ફ્રી, બાકીના પેઇડ
-                                                    is_free = (idx < 2)  # <--- આ લીટી બદલો!
+                                                    # ===== ફોટા માટે કિંમત (Price) =====
+                                                    # તમે અહીં ગમે તે લોજિક લખી શકો
+                                                    price = (idx + 1) * 10  # 10, 20, 30, 40, 50...
                                                     
-                                                    if is_free:
-                                                        st.markdown("🟢 **FREE**")
-                                                        try:
-                                                            with open(img_path, "rb") as f:
-                                                                st.download_button(
-                                                                    label="📥 ડાઉનલોડ કરો",
-                                                                    data=f,
-                                                                    file_name=item["filename"],
-                                                                    mime="image/jpeg",
-                                                                    key=f"free_dl_{person}_{idx}"
-                                                                )
-                                                        except:
-                                                            st.write("❌ ફોટો નથી")
-                                                    else:
-                                                        # ===== PAY =====
-                                                        st.markdown("🔴 **PAID**")
-                                                        # તમે કિંમત અહીં બદલી શકો છો
-                                                        price = 20  # <--- આ લીટી બદલો!
-                                                        
-                                                        if st.button(f"🔒 ડાઉનલોડ કરો (₹{price})", key=f"pay_btn_{person}_{idx}"):
-                                                            # ===== પેમેન્ટ ગેટવે (હાલમાં ડેમો) =====
-                                                            # અહીં તમે Razorpay, Stripe, અથવા Google Pay લિંક ઉમેરી શકો
-                                                            st.warning("💳 પેમેન્ટ ગેટવે અહીં આવશે! (ડેમો મોડ)")
-                                                            st.success("✅ પેમેન્ટ સફળ! હવે ડાઉનલોડ થશે.")
-                                                            try:
-                                                                with open(img_path, "rb") as f:
-                                                                    st.download_button(
-                                                                        label="📥 ડાઉનલોડ કરો",
-                                                                        data=f,
-                                                                        file_name=item["filename"],
-                                                                        mime="image/jpeg",
-                                                                        key=f"paid_dl_{person}_{idx}"
-                                                                    )
-                                                            except:
-                                                                st.write("❌ ફોટો નથી")
-                                            
-                                            # ===== "બધા ડાઉનલોડ કરો" બટન (ફક્ત FREE ફોટા માટે) =====
-                                            # આ વૈકલ્પિક છે, તમે ઇચ્છો તો ઉમેરી/કાઢી શકો છો
-                                            free_photos = [p for p in person_photos if True]  # તમારી લોજિક મુજબ
-                                            if len(free_photos) > 1:
-                                                st.markdown("---")
-                                                if st.button(f"📥 {person} ના બધા FREE ફોટા ZIP માં ડાઉનલોડ કરો", key=f"zip_{person}"):
-                                                    import zipfile
-                                                    import io
-                                                    zip_buffer = io.BytesIO()
-                                                    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
-                                                        for item in free_photos:
-                                                            img_path = os.path.join("events", event_name, "images", item["filename"])
-                                                            if os.path.exists(img_path):
-                                                                zip_file.write(img_path, item["filename"])
-                                                    zip_buffer.seek(0)
-                                                    st.download_button(
-                                                        label="📥 ZIP ડાઉનલોડ કરો",
-                                                        data=zip_buffer,
-                                                        file_name=f"{person}_free_photos.zip",
-                                                        mime="application/zip",
-                                                        key=f"zip_dl_{person}"
+                                                    # ===== ચેકબોક્સ =====
+                                                    cart_key = f"cart_{person}_{idx}"
+                                                    selected = st.checkbox(
+                                                        f"🛒 ₹{price}",
+                                                        key=cart_key,
+                                                        value=False
                                                     )
+                                                    
+                                                    # ===== જો ચેકબોક્સ સિલેક્ટ થયું હોય, તો કાર્ટમાં સ્ટોર કરો =====
+                                                    if selected:
+                                                        # આ ફોટા માટે કાર્ટમાં ઉમેરો
+                                                        if "cart" not in st.session_state:
+                                                            st.session_state.cart = []
+                                                        
+                                                        # ડુપ્લિકેટ ટાળવા માટે ચેક કરો
+                                                        cart_item = {
+                                                            "person": person,
+                                                            "filename": item["filename"],
+                                                            "price": price,
+                                                            "img_path": img_path
+                                                        }
+                                                        if cart_item not in st.session_state.cart:
+                                                            st.session_state.cart.append(cart_item)
+                                                    else:
+                                                        # જો ચેકબોક્સ અનસિલેક્ટ થાય, તો કાર્ટમાંથી દૂર કરો
+                                                        if "cart" in st.session_state:
+                                                            st.session_state.cart = [c for c in st.session_state.cart if not (c["person"] == person and c["filename"] == item["filename"])]
+                                            
+                                            # ===== "આ વ્યક્તિના બધા ફોટા કાર્ટમાં ઉમેરો" બટન =====
+                                            if st.button(f"➕ {person} ના બધા ફોટા કાર્ટમાં ઉમેરો", key=f"add_all_{person}"):
+                                                for item in person_photos:
+                                                    img_path = os.path.join("events", event_name, "images", item["filename"])
+                                                    price = (person_photos.index(item) + 1) * 10
+                                                    cart_item = {
+                                                        "person": person,
+                                                        "filename": item["filename"],
+                                                        "price": price,
+                                                        "img_path": img_path
+                                                    }
+                                                    if "cart" not in st.session_state:
+                                                        st.session_state.cart = []
+                                                    if cart_item not in st.session_state.cart:
+                                                        st.session_state.cart.append(cart_item)
+                                                st.rerun()
                                         else:
                                             st.write("❌ આ વ્યક્તિના કોઈ ફોટા નથી.")
+                                    
+                                    # ============================================================
+                                    # 🛒 CART DISPLAY (સાઇડબારમાં)
+                                    # ============================================================
+                                    st.sidebar.markdown("---")
+                                    st.sidebar.markdown("## 🛒 તમારું કાર્ટ")
+                                    
+                                    if "cart" in st.session_state and st.session_state.cart:
+                                        cart = st.session_state.cart
+                                        total_price = sum(item["price"] for item in cart)
+                                        
+                                        # દરેક કાર્ટ આઇટમ બતાવો
+                                        for idx, item in enumerate(cart):
+                                            st.sidebar.write(f"{idx+1}. {item['person']} - ₹{item['price']}")
+                                        
+                                        st.sidebar.markdown(f"### 💰 કુલ: ₹{total_price}")
+                                        
+                                        # ===== "ખાલી કરો" બટન =====
+                                        if st.sidebar.button("🗑️ કાર્ટ ખાલી કરો"):
+                                            st.session_state.cart = []
+                                            st.rerun()
+                                        
+                                        # ===== "🧾 ચેકઆઉટ" બટન =====
+                                        if st.sidebar.button("🧾 ચેકઆઉટ (₹{total_price})"):
+                                            st.sidebar.success("✅ કાર્ટ સફળતાપૂર્વક ચેકઆઉટ થયું!")
+                                            st.sidebar.info("💳 પેમેન્ટ ગેટવે અહીં આવશે (Razorpay/Stripe)")
+                                            # અહીં તમે Razorpay લિંક ઉમેરી શકો
+                                            # st.markdown(f"[Pay ₹{total_price} via Razorpay](https://rzp.io/l/your-link)")
+                                            # ચેકઆઉટ પછી કાર્ટ ખાલી કરો
+                                            # st.session_state.cart = []
+                                    else:
+                                        st.sidebar.info("🛒 કાર્ટ ખાલી છે")
+                                
                                 else:
                                     st.info("ℹ️ 30% થી વધુ સ્કોરવાળા કોઈ ફોટા નથી.")
 
