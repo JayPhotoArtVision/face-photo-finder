@@ -154,7 +154,6 @@ if option == "📂 Manage Events":
     with st.expander("➕ Create New Event", expanded=False):
         new_event = st.text_input("Event Name (e.g., Sharma_Wedding)")
         event_password = st.text_input("🔒 Event Password (for customers)", type="password")
-        
         if st.button("Create Event"):
             if new_event.strip() and event_password.strip():
                 event_folder = os.path.join("events", new_event.strip())
@@ -234,7 +233,7 @@ if option == "📂 Manage Events":
                         
                         embedding = face.embedding / np.linalg.norm(face.embedding)
                         
-                        # Smart label suggestion
+                        # ---- Smart Label Suggestion ----
                         suggested_label = "SKIP"
                         best_score = 0.30
                         event_data = load_event_data(selected_event)
@@ -285,10 +284,9 @@ if option == "📂 Manage Events":
                                 )
                                 st.session_state.pending_faces[idx]["label"] = label
                 
-                # Save button (outside the loop)
                 if st.button("💾 Save All Labels to Event", key="save_all_labels"):
-                    existing_data = load_event_data(selected_event)
-                    existing_faces = existing_data.get("faces", [])
+                    event_data = load_event_data(selected_event)
+                    existing_faces = event_data.get("faces", [])
                     count = 0
                     for face_data in st.session_state.pending_faces:
                         lbl = face_data["label"].strip()
@@ -299,9 +297,9 @@ if option == "📂 Manage Events":
                                 "embedding": face_data["embedding"]
                             })
                             count += 1
-                    existing_data["faces"] = existing_faces
-                    save_event_data(selected_event, existing_data)
-                    # Cleanup temp crops
+                    event_data["faces"] = existing_faces
+                    save_event_data(selected_event, event_data)
+                    
                     for face_data in st.session_state.pending_faces:
                         try:
                             os.remove(face_data["crop_path"])
@@ -312,7 +310,7 @@ if option == "📂 Manage Events":
                     st.success(f"✅ Saved {count} labeled faces to '{selected_event}'!")
                     st.rerun()
             
-            # ===== Display existing labeled faces =====
+            # ---------- DISPLAY LABELED PHOTOS ----------
             st.divider()
             event_data = load_event_data(selected_event)
             faces_list = event_data.get("faces", [])
