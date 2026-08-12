@@ -14,39 +14,32 @@ from insightface.app import FaceAnalysis
 from face_search import find_best_global_assignment
 from PIL import Image
 import pandas as pd
-import os
+
+# ============================================================
+# ENVIRONMENT VARIABLE (OpenCV માટે)
+# ============================================================
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 
 # ============================================================
-# 🎨 CUSTOM CSS - તમારી બ્રાન્ડ સ્ટાઇલ
+# PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="ફોટો શોધ - JayPhoto",
+    page_title="જય ફોટો શોધ",
     page_icon="📸",
     layout="wide"
 )
 
-# કસ્ટમ CSS
+# ============================================================
+# CUSTOM CSS - પ્રોફેશનલ ડિઝાઇન
+# ============================================================
 st.markdown("""
 <style>
-    /* ===== Google Font (Premium Look) ===== */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
     
     * {
         font-family: 'Inter', sans-serif;
     }
-
-    /* ===== મુખ્ય રંગો ===== */
-    :root {
-        --primary-dark: #0f0f0f;
-        --primary-card: #ffffff;
-        --accent-gold: #d4af37;
-        --accent-red: #e63946;
-        --text-dark: #1a1a1a;
-        --text-light: #6c757d;
-    }
-
-    /* ===== હેડર (Header) ===== */
+    
     .main-header {
         display: flex;
         align-items: center;
@@ -80,10 +73,8 @@ st.markdown("""
         font-weight: 400;
         color: #6c757d;
         margin: -5px 0 0 0;
-        letter-spacing: 0.3px;
     }
-
-    /* ===== સાઇડબાર (Sidebar) ===== */
+    
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
         padding: 2rem 1rem;
@@ -111,8 +102,7 @@ st.markdown("""
     .sidebar-logo .brand-name span {
         color: #d4af37;
     }
-
-    /* ===== કાર્ડ્સ (Cards) ===== */
+    
     .card {
         background: white;
         border: 1px solid #f0f0f0;
@@ -137,8 +127,7 @@ st.markdown("""
         color: #6c757d;
         line-height: 1.6;
     }
-
-    /* ===== બટનો (Buttons) ===== */
+    
     .stButton button {
         background: linear-gradient(135deg, #0f0f0f 0%, #333333 100%) !important;
         color: white !important;
@@ -155,15 +144,7 @@ st.markdown("""
         box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
         background: linear-gradient(135deg, #1a1a1a 0%, #444444 100%) !important;
     }
-
-    /* ===== ઇમેજ / ફોટા ===== */
-    .stImage {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-
-    /* ===== ફૂટર ===== */
+    
     .footer {
         text-align: center;
         padding: 2rem 0 0.5rem 0;
@@ -180,8 +161,7 @@ st.markdown("""
     .footer span {
         color: #d4af37;
     }
-
-    /* ===== મોબાઇલ (Responsive) ===== */
+    
     @media (max-width: 768px) {
         .logo-area img {
             height: 40px;
@@ -199,47 +179,17 @@ st.markdown("""
         }
     }
 </style>
-    
-    /* ===== સ્ક્રોલબાર ===== */
-    ::-webkit-scrollbar {
-        width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #e94560;
-        border-radius: 10px;
-    }
-    
-    /* ===== ફૂટર ===== */
-    .footer {
-        text-align: center;
-        padding: 2rem 0 1rem 0;
-        color: #adb5bd;
-        font-size: 0.8rem;
-        border-top: 1px solid #eee;
-        margin-top: 3rem;
-    }
-    .footer a {
-        color: #e94560;
-        text-decoration: none;
-    }
-</style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 🏠 HEADER - પ્રોફેશનલ લેઆઉટ
+# 🏠 HEADER
 # ============================================================
 col1, col2 = st.columns([1, 6])
-
 with col1:
     try:
-        st.image("assets/logo.jpg", width=70)  # તમારો લોગો
+        st.image("assets/logo.jpg", width=70)
     except:
         st.markdown("## 📸")
-
 with col2:
     st.markdown("""
     <div class="brand-text">
@@ -247,11 +197,11 @@ with col2:
         <div class="tagline">✨ AI દ્વારા તમારા ઇવેન્ટના યાદગાર ક્ષણો શોધો</div>
     </div>
     """, unsafe_allow_html=True)
+
 # ============================================================
-# ⚙️ HELPER FUNCTIONS
+# HELPER FUNCTIONS
 # ============================================================
 def parse_embedding(embedding_data):
-    """સુરક્ષિત રીતે embedding ને numpy array માં કન્વર્ટ કરો"""
     if embedding_data is None:
         return None
     if isinstance(embedding_data, str):
@@ -330,7 +280,7 @@ def load_event_faiss_index(event_name):
 app = load_insightface()
 
 # ============================================================
-# 🔐 PASSWORD PROTECTION
+# PASSWORD PROTECTION
 # ============================================================
 def check_password():
     if st.session_state.get("authenticated", False):
@@ -348,7 +298,7 @@ def check_password():
     return False
 
 # ============================================================
-# 🧭 SIDEBAR NAVIGATION
+# SIDEBAR NAVIGATION
 # ============================================================
 st.sidebar.markdown("""
 <div class="sidebar-logo">
@@ -357,8 +307,18 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+option = st.sidebar.selectbox(
+    "📌 પેજ પસંદ કરો",
+    ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 બેન્ચમાર્ક"],
+    format_func=lambda x: x
+)
+
+if option in ["📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો"]:
+    if not check_password():
+        st.stop()
+
 # ============================================================
-# 📂 PAGE 1: MANAGE EVENTS (ઇવેન્ટ મેનેજ)
+# PAGE 1: MANAGE EVENTS
 # ============================================================
 if option == "📂 ઇવેન્ટ મેનેજ":
     st.markdown("""
@@ -450,7 +410,6 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                         
                         embedding = face.embedding / np.linalg.norm(face.embedding)
                         
-                        # Smart Label Suggestion
                         suggested_label = "SKIP"
                         best_score = 0.30
                         event_data = load_event_data(selected_event)
@@ -480,7 +439,6 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                 status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
                 st.rerun()
             
-            # ---------- LABELING SECTION ----------
             if 'pending_faces' in st.session_state and st.session_state.pending_faces:
                 st.subheader(f"🏷️ {len(st.session_state.pending_faces)} ચહેરાઓને લેબલ આપો")
                 st.caption("દરેક ચહેરા માટે નામ અથવા અક્ષર લખો (દા.ત., રાજેશ, પ્રિયા, A, B). 'SKIP' લખવાથી તે ચહેરો અવગણાશે.")
@@ -527,13 +485,10 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                     st.success(f"✅ {count} ચહેરા '{selected_event}' માં સેવ થયા!")
                     st.rerun()
             
-            # ---------- DISPLAY LABELED PHOTOS ----------
             st.divider()
             event_data = load_event_data(selected_event)
             faces_list = event_data.get("faces", [])
-            
             st.write(f"📊 આ ઇવેન્ટમાં કુલ **{len(faces_list)}** લેબલ કરેલા ચહેરા છે.")
-            
             if len(faces_list) > 0:
                 st.subheader("🖼️ લેબલ કરેલા ફોટા")
                 for i in range(0, len(faces_list), 4):
@@ -552,7 +507,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                 st.info("ℹ️ હજુ સુધી કોઈ ફોટો લેબલ થયો નથી.")
 
 # ============================================================
-# 🔍 PAGE 2: SEARCH FACE (ફોટો શોધો)
+# PAGE 2: SEARCH FACE
 # ============================================================
 elif option == "🔍 ફોટો શોધો":
     query_params = st.query_params
@@ -570,7 +525,6 @@ elif option == "🔍 ફોટો શોધો":
         if not os.path.exists(event_folder):
             st.error(f"❌ '{event_name}' ઇવેન્ટ મળી નહીં. કૃપા કરીને યોગ્ય QR કોડ વાપરો.")
         else:
-            # EVENT PASSWORD CHECK
             if f"auth_{event_name}" not in st.session_state:
                 st.session_state[f"auth_{event_name}"] = False
             
@@ -592,7 +546,6 @@ elif option == "🔍 ફોટો શોધો":
                         st.error("❌ ખોટો પાસવર્ડ!")
                 st.stop()
             
-            # SEARCH SECTION
             st.markdown(f"""
             <div class="card">
                 <div class="card-title">🔍 '{event_name}' માં તમારા ફોટા શોધો</div>
@@ -676,7 +629,6 @@ elif option == "🔍 ફોટો શોધો":
                                     persons_list
                                 )
                                 
-                                # Decision Logic
                                 if result:
                                     for match in result:
                                         if match is None: continue
@@ -726,7 +678,7 @@ elif option == "🔍 ફોટો શોધો":
                                     st.info("ℹ️ 30% થી વધુ સ્કોરવાળા કોઈ ફોટા નથી.")
 
 # ============================================================
-# 📱 PAGE 3: GENERATE QR CODE (QR કોડ બનાવો)
+# PAGE 3: GENERATE QR CODE
 # ============================================================
 elif option == "📱 QR કોડ બનાવો":
     st.markdown("""
@@ -742,8 +694,6 @@ elif option == "📱 QR કોડ બનાવો":
         st.warning("⚠️ હજુ સુધી કોઈ ઇવેન્ટ નથી. કૃપા કરીને '📂 ઇવેન્ટ મેનેજ' માં પહેલાં ઇવેન્ટ બનાવો.")
     else:
         selected_event = st.selectbox("📂 ઇવેન્ટ પસંદ કરો", events)
-        local_ip = get_local_ip()
-        port = 8501
         
         if selected_event:
             clean_event = selected_event.replace(" ", "_")
@@ -774,7 +724,7 @@ elif option == "📱 QR કોડ બનાવો":
                 st.write("3. તેઓ સેલ્ફી લઈને તેમના ફોટા જોશે.")
 
 # ============================================================
-# 📊 PAGE 4: BENCHMARK
+# PAGE 4: BENCHMARK
 # ============================================================
 else:
     st.header("📊 બેન્ચમાર્ક પરિણામો")
