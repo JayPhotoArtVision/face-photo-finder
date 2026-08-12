@@ -228,13 +228,19 @@ st.markdown("""
 # ============================================================
 # 🏠 HEADER - તમારો લોગો અને બ્રાન્ડ
 # ============================================================
-st.markdown(f"""
-<div class="main-header">
-    <h1>📸 જય ફોટો શોધ</h1>
-    <div class="subtitle">✨ તમારા ઇવેન્ટના ફોટા શોધો અને ડાઉનલોડ કરો</div>
-    <div class="tagline">🔥 {datetime.datetime.now().strftime('%d-%m-%Y')} - ફોટોગ્રાફી દ્વારા યાદો સાચવો</div>
-</div>
-""", unsafe_allow_html=True)
+col1, col2 = st.columns([1, 6])  # 1 ભાગ લોગો માટે, 6 ભાગ ટેક્સ્ટ માટે
+with col1:
+    try:
+        st.image("assets/logo.png", width=70)  # અહીં તમારી ફાઈલનું નામ લખો
+    except:
+        st.write("📸")  # જો લોગો ના મળે તો ઇમોજી બતાવે
+with col2:
+    st.markdown("""
+    <div class="main-header" style="background: transparent; padding: 0; box-shadow: none; text-align: left;">
+        <h1 style="color: #1a1a2e; font-size: 2.2rem; margin: 0;">જય ફોટો શોધ</h1>
+        <div class="subtitle" style="color: #e94560; font-size: 0.9rem;">✨ તમારા ઇવેન્ટના ફોટા શોધો અને ડાઉનલોડ કરો</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ============================================================
 # ⚙️ HELPER FUNCTIONS
@@ -339,22 +345,18 @@ def check_password():
 # ============================================================
 # 🧭 SIDEBAR NAVIGATION
 # ============================================================
-st.sidebar.markdown("""
-<div class="sidebar-brand">
-    <div class="logo-text">📸 જય<span>ફોટો</span></div>
-    <div class="logo-sub">AI ફેસ શોધ</div>
-</div>
-""", unsafe_allow_html=True)
+st.sidebar.markdown("---")
+try:
+    st.sidebar.image("assets/logo.png", width=180)  # સાઇડબારમાં લોગો
+except:
+    st.sidebar.markdown("## 📸 જયફોટો")  # ફોલબેક
 
+st.sidebar.markdown("---")
 option = st.sidebar.selectbox(
     "📌 પેજ પસંદ કરો",
     ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 બેન્ચમાર્ક"],
     format_func=lambda x: x
 )
-
-if option in ["📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો"]:
-    if not check_password():
-        st.stop()
 
 # ============================================================
 # 📂 PAGE 1: MANAGE EVENTS (ઇવેન્ટ મેનેજ)
