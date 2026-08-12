@@ -16,7 +16,7 @@ from PIL import Image
 import pandas as pd
 
 # ===== ફોટા ડાઉનલોડની ફિક્સ્ડ કિંમત (બધા ફોટા માટે સરખી) =====
-PHOTO_PRICE = 10  # અહીં તમને ગમે તે કિંમત લખો (દા.ત., 10, 25, 50, 100)
+PHOTO_PRICE = 0  # અહીં તમને ગમે તે કિંમત લખો (દા.ત., 10, 25, 50, 100)
 
 # ============================================================
 # ENVIRONMENT VARIABLE (OpenCV માટે)
@@ -743,11 +743,10 @@ elif option == "🔍 ફોટો શોધો":
                                                     
                                                     # ===== ચેકબોક્સ =====
                                                     cart_key = f"cart_{person}_{idx}"
-                                                    selected = st.checkbox(
-                                                        f"🛒 ₹{price}",
-                                                        key=cart_key,
-                                                        value=False
-                                                    )
+                                                if price == 0:
+                                                    selected = st.checkbox(f"🆓 FREE", key=cart_key, value=False)
+                                                else:
+                                                    selected = st.checkbox(f"🛒 ₹{price}", key=cart_key, value=False)
                                                     
                                                     # ===== જો ચેકબોક્સ સિલેક્ટ થયું હોય, તો કાર્ટમાં સ્ટોર કરો =====
                                                     if selected:
@@ -800,7 +799,10 @@ elif option == "🔍 ફોટો શોધો":
                                         
                                         # દરેક કાર્ટ આઇટમ બતાવો
                                         for idx, item in enumerate(cart):
-                                            st.sidebar.write(f"{idx+1}. {item['person']} - ₹{item['price']}")
+                                    if item['price'] == 0:
+                                        st.sidebar.write(f"{idx+1}. {item['person']} - 🆓 FREE")
+                                    else:
+                                        st.sidebar.write(f"{idx+1}. {item['person']} - ₹{item['price']}")
                                         
                                         st.sidebar.markdown(f"### 💰 કુલ: ₹{total_price}")
                                         
