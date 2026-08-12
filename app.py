@@ -153,19 +153,22 @@ if option == "📂 Manage Events":
     
     with st.expander("➕ Create New Event", expanded=False):
         new_event = st.text_input("Event Name (e.g., Sharma_Wedding)")
+        event_password = st.text_input("🔒 Event Password (for customers)", type="password")
+        
         if st.button("Create Event"):
-            if new_event.strip():
+            if new_event.strip() and event_password.strip():
                 event_folder = os.path.join("events", new_event.strip())
                 if os.path.exists(event_folder):
                     st.warning("Event already exists!")
                 else:
                     os.makedirs(event_folder)
                     os.makedirs(os.path.join(event_folder, "images"))
-                    save_event_data(new_event.strip(), [])
-                    st.success(f"✅ Event '{new_event}' created!")
+                    event_data = {"password": event_password, "faces": []}
+                    save_event_data(new_event.strip(), event_data)
+                    st.success(f"✅ Event '{new_event}' created with password protection!")
                     st.rerun()
             else:
-                st.error("Please enter a name.")
+                st.error("Please enter both name and password.")
 
     events = get_events_list()
     if not events:
@@ -177,8 +180,8 @@ if option == "📂 Manage Events":
             st.subheader(f"📤 Upload & Label Faces for: {selected_event}")
             
             uploaded_files = st.file_uploader(
-                "Choose photos (JPG/PNG)...", 
-                type=["jpg", "jpeg", "png"], 
+                "Choose photos (JPG/PNG)...",
+                type=["jpg", "jpeg", "png"],
                 accept_multiple_files=True
             )
             
@@ -231,23 +234,21 @@ if option == "📂 Manage Events":
                         
                         embedding = face.embedding / np.linalg.norm(face.embedding)
                         
-                                              # ---- સ્માર્ટ લેબલ સજેશન (Auto-detect) ----
+                        # Smart label suggestion
                         suggested_label = "SKIP"
                         best_score = 0.30
-                        
-                        # ઇવેન્ટમાં પહેલેથી સેવ થયેલા ફોટા લોડ કરો
                         event_data = load_event_data(selected_event)
                         existing_data = event_data.get("faces", [])
                         
                         if existing_data:
                             for item in existing_data:
-                                db_emb = np.array(item["embedding"])
-                                similarity = float(np.dot(embedding, db_emb))
-                                if similarity > best_score:
-                                    best_score = similarity
-                                    suggested_label = item["person_label"]
+                                db_emb = parse_embedding(item.get("embedding"))
+                                if db_emb is not None:
+                                    similarity = float(np.dot(embedding, db_emb))
+                                    if similarity > best_score:
+                                        best_score = similarity
+                                        suggested_label = item["person_label"]
                         
-                        # જો સ્કોર 0.70 (એટલે 70%) થી વધુ હોય તો જ લેબલ સજેસ્ટ કરો, નહીં તો SKIP
                         if best_score < 0.70:
                             suggested_label = "SKIP"
                         
@@ -263,82 +264,74 @@ if option == "📂 Manage Events":
                 status_text.text("Detection complete! Please assign labels below.")
                 st.rerun()
             
-            # ---------- LABELING SECTION (Text Input) ----------
-if 'pending_faces' in st.session_state and st.session_state.pending_faces:
-    st.subheader(f"🏷️ Label {len(st.session_state.pending_faces)} detected faces")
-    st.caption("Enter a name or letter (e.g., Rajesh, Priya, A, B, C). Use SKIP to ignore.")
-    
-    pending = st.session_state.pending_faces
-    for i in range(0, len(pending), 4):
-        cols = st.columns(4)
-        for j, col in enumerate(cols):
-            idx = i + j
-            if idx < len(pending):
-                face_data = pending[idx]
-                with col:
-                    st.image(face_data["crop_path"], width=150)
-                    label = st.text_input(
-                        f"Face {idx+1} (Name/Letter)",
-                        value=face_data["label"],
-                        key=f"label_{idx}"
-                    )
-                    st.session_state.pending_faces[idx]["label"] = label
-    
-    # ===== Save બટન (લૂપની બહાર) =====
-    if st.button("💾 Save All Labels to Event", key="save_all_labels"):
-        existing_data = load_event_data(selected_event)
-        existing_faces = existing_data.get("faces", [])
-        count = 0
-        for face_data in st.session_state.pending_faces:
-            lbl = face_data["label"].strip()
-            if lbl != "SKIP" and lbl != "":
-                existing_faces.append({
-                    "filename": face_data["original_filename"],
-                    "person_label": lbl,
-                    "embedding": face_data["embedding"]
-                })
-                count += 1
-        existing_data["faces"] = existing_faces
-        save_event_data(selected_event, existing_data)
-        # Cleanup
-        for face_data in st.session_state.pending_faces:
-            try:
-                os.remove(face_data["crop_path"])
-            except:
-                pass
-        st.session_state.pending_faces = []
-        st.cache_resource.clear()
-        st.success(f"✅ Saved {count} labeled faces to '{selected_event}'!")
-        st.rerun()
+            # ---------- LABELING SECTION ----------
+            if 'pending_faces' in st.session_state and st.session_state.pending_faces:
+                st.subheader(f"🏷️ Label {len(st.session_state.pending_faces)} detected faces")
+                st.caption("Enter a name or letter (e.g., Rajesh, Priya, A, B, C). Use SKIP to ignore.")
+                
+                pending = st.session_state.pending_faces
+                for i in range(0, len(pending), 4):
+                    cols = st.columns(4)
+                    for j, col in enumerate(cols):
+                        idx = i + j
+                        if idx < len(pending):
+                            face_data = pending[idx]
+                            with col:
+                                st.image(face_data["crop_path"], width=150)
+                                label = st.text_input(
+                                    f"Face {idx+1} (Name/Letter)",
+                                    value=face_data["label"],
+                                    key=f"label_{idx}"
+                                )
+                                st.session_state.pending_faces[idx]["label"] = label
+                
+                # Save button (outside the loop)
+                if st.button("💾 Save All Labels to Event", key="save_all_labels"):
+                    existing_data = load_event_data(selected_event)
+                    existing_faces = existing_data.get("faces", [])
+                    count = 0
+                    for face_data in st.session_state.pending_faces:
+                        lbl = face_data["label"].strip()
+                        if lbl != "SKIP" and lbl != "":
+                            existing_faces.append({
+                                "filename": face_data["original_filename"],
+                                "person_label": lbl,
+                                "embedding": face_data["embedding"]
+                            })
+                            count += 1
+                    existing_data["faces"] = existing_faces
+                    save_event_data(selected_event, existing_data)
+                    # Cleanup temp crops
+                    for face_data in st.session_state.pending_faces:
+                        try:
+                            os.remove(face_data["crop_path"])
+                        except:
+                            pass
+                    st.session_state.pending_faces = []
+                    st.cache_resource.clear()
+                    st.success(f"✅ Saved {count} labeled faces to '{selected_event}'!")
+                    st.rerun()
             
-                        # ===== હાલનો ડેટા બતાવો (ટેક્સ્ટ + થંબનેઇલ) =====
-    st.divider()
-            data = load_event_data(selected_event)
-            st.write(f"📊 Total labeled faces in this event: **{len(data)}**")
-            
-                       # ===== હાલનો ડેટા બતાવો (થંબનેઇલ + ટેક્સ્ટ) =====
+            # ===== Display existing labeled faces =====
             st.divider()
-            event_data = load_event_data(selected_event)  # આ ડિક્શનરી છે
-            faces_list = event_data.get("faces", [])     # ફક્ત 'faces' ભાગ લો
+            event_data = load_event_data(selected_event)
+            faces_list = event_data.get("faces", [])
             
             st.write(f"📊 Total labeled faces in this event: **{len(faces_list)}**")
             
             if len(faces_list) > 0:
                 st.subheader("🖼️ Labeled Photos (Thumbnails)")
-                # દરેક ૪ ઇમેજની ગ્રીડ (Grid) માં બતાવો
                 for i in range(0, len(faces_list), 4):
                     cols = st.columns(4)
                     for j, col in enumerate(cols):
                         idx = i + j
                         if idx < len(faces_list):
-                            item = faces_list[idx]  # હવે item યોગ્ય રીતે મળશે
-                            # ફોટાનો પાથ બનાવો
+                            item = faces_list[idx]
                             img_path = os.path.join("events", selected_event, "images", item["filename"])
                             with col:
                                 try:
-                                    # ફોટો બતાવો અને તેની નીચે લેબલ લખો
                                     st.image(img_path, caption=f"Label: {item['person_label']}", width=150)
-                                except Exception as e:
+                                except:
                                     st.write(f"❌ {item['filename']}")
             else:
                 st.info("No faces labeled yet in this event.")
