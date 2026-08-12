@@ -17,12 +17,233 @@ import pandas as pd
 import os
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 
+# ============================================================
+# 🎨 CUSTOM CSS - તમારી બ્રાન્ડ સ્ટાઇલ
+# ============================================================
+st.set_page_config(
+    page_title="ફોટો શોધ - JayPhoto",
+    page_icon="📸",
+    layout="wide"
+)
+
+# કસ્ટમ CSS
+st.markdown("""
+<style>
+    /* ===== તમારા બ્રાન્ડ રંગો ===== */
+    :root {
+        --primary: #1a1a2e;      /* ડાર્ક - હેડર માટે */
+        --secondary: #e94560;    /* લાલ-ગુલાબી - એક્સેન્ટ */
+        --accent: #f5a623;       /* સોનેરી - હાઇલાઇટ */
+        --light: #f8f9fa;        /* હળવો - બેકગ્રાઉન્ડ */
+        --text: #2d3436;         /* ટેક્સ્ટ રંગ */
+    }
+    
+    /* ===== હેડર ===== */
+    .main-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        text-align: center;
+    }
+    .main-header h1 {
+        color: white;
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: 1px;
+    }
+    .main-header .subtitle {
+        color: #f5a623;
+        font-size: 1.1rem;
+        margin-top: 5px;
+        font-weight: 300;
+    }
+    .main-header .tagline {
+        color: #adb5bd;
+        font-size: 0.9rem;
+        margin-top: 3px;
+    }
+    
+    /* ===== સાઇડબાર ===== */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+        padding-top: 2rem;
+    }
+    section[data-testid="stSidebar"] .stSelectbox label {
+        color: #f8f9fa !important;
+        font-weight: 600;
+    }
+    section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] {
+        background-color: rgba(255,255,255,0.1);
+        border-radius: 10px;
+    }
+    .sidebar-brand {
+        text-align: center;
+        padding: 1rem 0 2rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 2rem;
+    }
+    .sidebar-brand .logo-text {
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+    .sidebar-brand .logo-text span {
+        color: #f5a623;
+    }
+    .sidebar-brand .logo-sub {
+        color: #adb5bd;
+        font-size: 0.8rem;
+    }
+    
+    /* ===== કાર્ડ્સ ===== */
+    .card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(0,0,0,0.04);
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    }
+    .card-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+    }
+    .card-desc {
+        color: #636e72;
+        font-size: 0.9rem;
+    }
+    
+    /* ===== બટનો ===== */
+    .stButton button {
+        background: linear-gradient(135deg, #e94560, #c0392b) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 30px !important;
+        padding: 0.6rem 2rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s !important;
+        box-shadow: 0 2px 12px rgba(233,69,96,0.3) !important;
+    }
+    .stButton button:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 20px rgba(233,69,96,0.5) !important;
+    }
+    
+    /* ===== ફાઇલ અપલોડ ===== */
+    .stFileUploader {
+        border: 2px dashed #e94560 !important;
+        border-radius: 16px !important;
+        background: rgba(233,69,96,0.04) !important;
+        padding: 1rem !important;
+    }
+    .stFileUploader:hover {
+        background: rgba(233,69,96,0.08) !important;
+    }
+    
+    /* ===== ફોટા ગ્રીડ ===== */
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .photo-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: transform 0.2s;
+        text-align: center;
+    }
+    .photo-card:hover {
+        transform: scale(1.02);
+    }
+    .photo-card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+    }
+    .photo-card .label {
+        padding: 0.5rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        font-size: 0.85rem;
+    }
+    
+    /* ===== મોબાઇલ ફ્રેન્ડલી ===== */
+    @media (max-width: 768px) {
+        .main-header h1 {
+            font-size: 1.8rem;
+        }
+        .main-header .subtitle {
+            font-size: 0.9rem;
+        }
+        .photo-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+        .stColumns {
+            gap: 0.5rem !important;
+        }
+    }
+    
+    /* ===== સ્ક્રોલબાર ===== */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #e94560;
+        border-radius: 10px;
+    }
+    
+    /* ===== ફૂટર ===== */
+    .footer {
+        text-align: center;
+        padding: 2rem 0 1rem 0;
+        color: #adb5bd;
+        font-size: 0.8rem;
+        border-top: 1px solid #eee;
+        margin-top: 3rem;
+    }
+    .footer a {
+        color: #e94560;
+        text-decoration: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ============================================================
+# 🏠 HEADER - તમારો લોગો અને બ્રાન્ડ
+# ============================================================
+st.markdown(f"""
+<div class="main-header">
+    <h1>📸 જય ફોટો શોધ</h1>
+    <div class="subtitle">✨ તમારા ઇવેન્ટના ફોટા શોધો અને ડાઉનલોડ કરો</div>
+    <div class="tagline">🔥 {datetime.datetime.now().strftime('%d-%m-%Y')} - ફોટોગ્રાફી દ્વારા યાદો સાચવો</div>
+</div>
+""", unsafe_allow_html=True)
+
+# ============================================================
+# ⚙️ HELPER FUNCTIONS
+# ============================================================
 def parse_embedding(embedding_data):
     """સુરક્ષિત રીતે embedding ને numpy array માં કન્વર્ટ કરો"""
     if embedding_data is None:
         return None
     if isinstance(embedding_data, str):
-        # JSON સ્ટ્રિંગ હોય તો પાર્સ કરો
         try:
             import json
             embedding_data = json.loads(embedding_data)
@@ -33,44 +254,7 @@ def parse_embedding(embedding_data):
     if isinstance(embedding_data, np.ndarray):
         return embedding_data
     return None
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-st.set_page_config(page_title="AI Face Photo Finder", layout="wide")
-st.sidebar.title("📸 AI Face Photo Finder")
 
-# ===== G: ડ્રાઇવમાં ટેમ્પ ફોલ્ડર (જગ્યા માટે) =====
-TEMP_DIR = r"G:\AI Face Photo Finder\temp_files"
-os.makedirs(TEMP_DIR, exist_ok=True)
-tempfile.tempdir = TEMP_DIR
-# ============================================================
-# PASSWORD PROTECTION (ફક્ત મેનેજમેન્ટ પેજ માટે)
-# ============================================================
-def check_password():
-    """Returns `True` if the user is authorized to access management pages."""
-    # જો પાસવર્ડ પહેલેથી વેરિફાય થઈ ગયો હોય
-    if st.session_state.get("authenticated", False):
-        return True
-
-    # પાસવર્ડ ઇનપુટ બોક્સ બતાવો
-    st.sidebar.markdown("---")
-    password = st.sidebar.text_input("🔒 Admin Password:", type="password", key="admin_pass")
-    
-    if password:
-        # સાચો પાસવર્ડ ચેક કરો (st.secrets માંથી)
-        if password == st.secrets["admin_password"]:
-            st.session_state.authenticated = True
-            st.sidebar.success("✅ Access Granted!")
-            return True
-        else:
-            st.sidebar.error("❌ Incorrect Password!")
-            return False
-    return False
-# ============================================================
-
-# ============================================================
-# HELPER FUNCTIONS
-# ============================================================
 def get_local_ip():
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -94,7 +278,6 @@ def load_event_data(event_name):
         data = json.load(f)
     if isinstance(data, list):
         data = {"password": "", "faces": data}
-    # દરેક ફોટાના એમ્બેડિંગને પાર્સ કરો (જો જરૂર હોય તો)
     for face in data.get("faces", []):
         if "embedding" in face and isinstance(face["embedding"], str):
             try:
@@ -104,7 +287,6 @@ def load_event_data(event_name):
     return data
 
 def save_event_data(event_name, data):
-    """ઇવેન્ટનો ડેટા સેવ કરો (પાસવર્ડ + ફોટા)"""
     os.makedirs(os.path.join("events", event_name), exist_ok=True)
     path = os.path.join("events", event_name, "data.json")
     with open(path, "w", encoding="utf-8") as f:
@@ -118,83 +300,107 @@ def load_insightface():
 
 @st.cache_resource
 def load_event_faiss_index(event_name):
-    """Event ના બધા embeddings ને FAISS ઇન્ડેક્સમાં કન્વર્ટ કરો"""
     data = load_event_data(event_name)
     if not data:
         return None, None
-    
-    # ===== 🔥 ફક્ત યોગ્ય એમ્બેડિંગવાળા ફોટા લો =====
     valid_faces = []
     for item in data.get("faces", []):
         emb = parse_embedding(item.get("embedding"))
         if emb is not None:
             valid_faces.append(item)
-    
     if not valid_faces:
         return None, None
-    
     embeddings = np.array([item["embedding"] for item in valid_faces], dtype=np.float32)
     dim = embeddings.shape[1]
     index = faiss.IndexFlatIP(dim)
     index.add(embeddings)
-    
     return index, valid_faces
 
 app = load_insightface()
 
 # ============================================================
-# SIDEBAR NAVIGATION (પાસવર્ડ સાથે)
+# 🔐 PASSWORD PROTECTION
 # ============================================================
-# પહેલાં પેજ સિલેક્ટ કરો
+def check_password():
+    if st.session_state.get("authenticated", False):
+        return True
+    st.sidebar.markdown("---")
+    password = st.sidebar.text_input("🔒 એડમિન પાસવર્ડ:", type="password", key="admin_pass")
+    if password:
+        if password == st.secrets["admin_password"]:
+            st.session_state.authenticated = True
+            st.sidebar.success("✅ પ્રવેશ મળ્યો!")
+            return True
+        else:
+            st.sidebar.error("❌ ખોટો પાસવર્ડ!")
+            return False
+    return False
+
+# ============================================================
+# 🧭 SIDEBAR NAVIGATION
+# ============================================================
+st.sidebar.markdown("""
+<div class="sidebar-brand">
+    <div class="logo-text">📸 જય<span>ફોટો</span></div>
+    <div class="logo-sub">AI ફેસ શોધ</div>
+</div>
+""", unsafe_allow_html=True)
+
 option = st.sidebar.selectbox(
-    "Select Page",
-    ["🔍 Search Face", "📂 Manage Events", "📱 Generate QR Code", "📊 Benchmark Results"]
+    "📌 પેજ પસંદ કરો",
+    ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 બેન્ચમાર્ક"],
+    format_func=lambda x: x
 )
 
-# જો વપરાશકર્તા 'Manage Events' અથવા 'Generate QR Code' પસંદ કરે તો પાસવર્ડ ચેક કરો
-if option in ["📂 Manage Events", "📱 Generate QR Code"]:
+if option in ["📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો"]:
     if not check_password():
-        st.stop()  # અહીં એપ રોકાઈ જાય, અને ફક્ત સાઇડબારમાં પાસવર્ડ બોક્સ દેખાય
+        st.stop()
+
 # ============================================================
-# PAGE 1: MANAGE EVENTS
+# 📂 PAGE 1: MANAGE EVENTS (ઇવેન્ટ મેનેજ)
 # ============================================================
-if option == "📂 Manage Events":
-    st.header("📂 Manage Events")
+if option == "📂 ઇવેન્ટ મેનેજ":
+    st.markdown("""
+    <div class="card">
+        <div class="card-title">📂 ઇવેન્ટ મેનેજમેન્ટ</div>
+        <div class="card-desc">અહીં તમે નવી ઇવેન્ટ બનાવી શકો છો, ફોટા અપલોડ કરી શકો છો અને ચહેરાઓને લેબલ આપી શકો છો.</div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    with st.expander("➕ Create New Event", expanded=False):
-        new_event = st.text_input("Event Name (e.g., Sharma_Wedding)")
-        event_password = st.text_input("🔒 Event Password (for customers)", type="password")
-        if st.button("Create Event"):
+    with st.expander("➕ નવી ઇવેન્ટ બનાવો", expanded=False):
+        new_event = st.text_input("ઇવેન્ટનું નામ (દા.ત., શર્મા_લગ્ન)")
+        event_password = st.text_input("🔒 ઇવેન્ટ પાસવર્ડ (ગ્રાહકો માટે)", type="password")
+        if st.button("📌 ઇવેન્ટ બનાવો"):
             if new_event.strip() and event_password.strip():
                 event_folder = os.path.join("events", new_event.strip())
                 if os.path.exists(event_folder):
-                    st.warning("Event already exists!")
+                    st.warning("⚠️ આ નામની ઇવેન્ટ પહેલેથી છે!")
                 else:
                     os.makedirs(event_folder)
                     os.makedirs(os.path.join(event_folder, "images"))
                     event_data = {"password": event_password, "faces": []}
                     save_event_data(new_event.strip(), event_data)
-                    st.success(f"✅ Event '{new_event}' created with password protection!")
+                    st.success(f"✅ '{new_event}' ઇવેન્ટ સફળતાપૂર્વક બની!")
                     st.rerun()
             else:
-                st.error("Please enter both name and password.")
+                st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
 
     events = get_events_list()
     if not events:
-        st.info("No events yet. Create one above.")
+        st.info("ℹ️ હજુ સુધી કોઈ ઇવેન્ટ નથી. ઉપર નવી ઇવેન્ટ બનાવો.")
     else:
-        selected_event = st.selectbox("Select Event to manage", events)
+        selected_event = st.selectbox("📂 ઇવેન્ટ પસંદ કરો", events)
         
         if selected_event:
-            st.subheader(f"📤 Upload & Label Faces for: {selected_event}")
+            st.subheader(f"📤 '{selected_event}' માં ફોટા અપલોડ કરો")
             
             uploaded_files = st.file_uploader(
-                "Choose photos (JPG/PNG)...",
+                "📸 ફોટા પસંદ કરો (JPG/PNG)...",
                 type=["jpg", "jpeg", "png"],
                 accept_multiple_files=True
             )
             
-            if st.button("🔍 Detect Faces in Uploaded Photos") and uploaded_files:
+            if st.button("🔍 ચહેરા શોધો") and uploaded_files:
                 os.makedirs("temp_crops", exist_ok=True)
                 os.makedirs(os.path.join("events", selected_event, "images"), exist_ok=True)
                 
@@ -208,7 +414,7 @@ if option == "📂 Manage Events":
                 total_files = len(uploaded_files)
                 
                 for i, file in enumerate(uploaded_files):
-                    status_text.text(f"Processing {file.name}...")
+                    status_text.text(f"⏳ {file.name} પર કામ ચાલુ છે...")
                     
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
                         tmp.write(file.read())
@@ -218,7 +424,7 @@ if option == "📂 Manage Events":
                     faces = app.get(img)
                     
                     if len(faces) == 0:
-                        st.warning(f"No faces in {file.name}. Skipping.")
+                        st.warning(f"⚠️ {file.name} માં કોઈ ચહેરો નથી.")
                         continue
                     
                     file_ext = os.path.splitext(file.name)[1]
@@ -243,7 +449,7 @@ if option == "📂 Manage Events":
                         
                         embedding = face.embedding / np.linalg.norm(face.embedding)
                         
-                        # ---- Smart Label Suggestion ----
+                        # Smart Label Suggestion
                         suggested_label = "SKIP"
                         best_score = 0.30
                         event_data = load_event_data(selected_event)
@@ -270,13 +476,13 @@ if option == "📂 Manage Events":
                     
                     progress_bar.progress((i + 1) / total_files)
                 
-                status_text.text("Detection complete! Please assign labels below.")
+                status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
                 st.rerun()
             
             # ---------- LABELING SECTION ----------
             if 'pending_faces' in st.session_state and st.session_state.pending_faces:
-                st.subheader(f"🏷️ Label {len(st.session_state.pending_faces)} detected faces")
-                st.caption("Enter a name or letter (e.g., Rajesh, Priya, A, B, C). Use SKIP to ignore.")
+                st.subheader(f"🏷️ {len(st.session_state.pending_faces)} ચહેરાઓને લેબલ આપો")
+                st.caption("દરેક ચહેરા માટે નામ અથવા અક્ષર લખો (દા.ત., રાજેશ, પ્રિયા, A, B). 'SKIP' લખવાથી તે ચહેરો અવગણાશે.")
                 
                 pending = st.session_state.pending_faces
                 for i in range(0, len(pending), 4):
@@ -288,13 +494,13 @@ if option == "📂 Manage Events":
                             with col:
                                 st.image(face_data["crop_path"], width=150)
                                 label = st.text_input(
-                                    f"Face {idx+1} (Name/Letter)",
+                                    f"ચહેરો {idx+1}",
                                     value=face_data["label"],
                                     key=f"label_{idx}"
                                 )
                                 st.session_state.pending_faces[idx]["label"] = label
                 
-                if st.button("💾 Save All Labels to Event", key="save_all_labels"):
+                if st.button("💾 બધા લેબલ સેવ કરો", key="save_all_labels"):
                     event_data = load_event_data(selected_event)
                     existing_faces = event_data.get("faces", [])
                     count = 0
@@ -317,7 +523,7 @@ if option == "📂 Manage Events":
                             pass
                     st.session_state.pending_faces = []
                     st.cache_resource.clear()
-                    st.success(f"✅ Saved {count} labeled faces to '{selected_event}'!")
+                    st.success(f"✅ {count} ચહેરા '{selected_event}' માં સેવ થયા!")
                     st.rerun()
             
             # ---------- DISPLAY LABELED PHOTOS ----------
@@ -325,10 +531,10 @@ if option == "📂 Manage Events":
             event_data = load_event_data(selected_event)
             faces_list = event_data.get("faces", [])
             
-            st.write(f"📊 Total labeled faces in this event: **{len(faces_list)}**")
+            st.write(f"📊 આ ઇવેન્ટમાં કુલ **{len(faces_list)}** લેબલ કરેલા ચહેરા છે.")
             
             if len(faces_list) > 0:
-                st.subheader("🖼️ Labeled Photos (Thumbnails)")
+                st.subheader("🖼️ લેબલ કરેલા ફોટા")
                 for i in range(0, len(faces_list), 4):
                     cols = st.columns(4)
                     for j, col in enumerate(cols):
@@ -338,73 +544,88 @@ if option == "📂 Manage Events":
                             img_path = os.path.join("events", selected_event, "images", item["filename"])
                             with col:
                                 try:
-                                    st.image(img_path, caption=f"Label: {item['person_label']}", width=150)
+                                    st.image(img_path, caption=f"લેબલ: {item['person_label']}", width=150)
                                 except:
                                     st.write(f"❌ {item['filename']}")
             else:
-                st.info("No faces labeled yet in this event.")
+                st.info("ℹ️ હજુ સુધી કોઈ ફોટો લેબલ થયો નથી.")
+
 # ============================================================
-# PAGE 2: SEARCH FACE (FAISS + Dynamic Labels)
+# 🔍 PAGE 2: SEARCH FACE (ફોટો શોધો)
 # ============================================================
-elif option == "🔍 Search Face":
+elif option == "🔍 ફોટો શોધો":
     query_params = st.query_params
     event_name = query_params.get("event", None)
     
     if event_name is None:
-        st.warning("⚠️ No event specified. Please scan a valid QR code.")
+        st.markdown("""
+        <div class="card">
+            <div class="card-title">🔍 તમારા ફોટા શોધો</div>
+            <div class="card-desc">કૃપા કરીને QR કોડ સ્કેન કરો અથવા ઇવેન્ટ લિંક ખોલો.</div>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         event_folder = os.path.join("events", event_name)
         if not os.path.exists(event_folder):
-            st.error(f"❌ Event '{event_name}' not found.")
+            st.error(f"❌ '{event_name}' ઇવેન્ટ મળી નહીં. કૃપા કરીને યોગ્ય QR કોડ વાપરો.")
         else:
-            # ====== EVENT PASSWORD CHECK ======
+            # EVENT PASSWORD CHECK
             if f"auth_{event_name}" not in st.session_state:
                 st.session_state[f"auth_{event_name}"] = False
             
             if not st.session_state[f"auth_{event_name}"]:
-                st.header(f"🔒 Enter Password for: {event_name}")
-                entered_password = st.text_input("Event Password:", type="password")
-                if st.button("Access Event"):
+                st.markdown(f"""
+                <div class="card">
+                    <div class="card-title">🔒 '{event_name}' ઇવેન્ટ માટે પાસવર્ડ</div>
+                    <div class="card-desc">આ ઇવેન્ટને ઍક્સેસ કરવા માટે પાસવર્ડ લખો.</div>
+                </div>
+                """, unsafe_allow_html=True)
+                entered_password = st.text_input("🔑 ઇવેન્ટ પાસવર્ડ:", type="password")
+                if st.button("🚪 પ્રવેશ કરો"):
                     event_data = load_event_data(event_name)
                     if event_data.get("password") == entered_password:
                         st.session_state[f"auth_{event_name}"] = True
-                        st.success("✅ Access Granted!")
+                        st.success("✅ પ્રવેશ મળ્યો!")
                         st.rerun()
                     else:
-                        st.error("❌ Incorrect Password!")
+                        st.error("❌ ખોટો પાસવર્ડ!")
                 st.stop()
             
-            # ====== જો પાસવર્ડ સાચો હોય ======
-            st.header(f"🔍 Searching photos for: {event_name}")
+            # SEARCH SECTION
+            st.markdown(f"""
+            <div class="card">
+                <div class="card-title">🔍 '{event_name}' માં તમારા ફોટા શોધો</div>
+                <div class="card-desc">નીચે તમારો ફોટો અપલોડ કરો અથવા સેલ્ફી લો, અમે તમારા બધા ફોટા શોધી આપીશું.</div>
+            </div>
+            """, unsafe_allow_html=True)
             
             index, db_data = load_event_faiss_index(event_name)
             
             if index is None or len(db_data) == 0:
-                st.warning("No photos uploaded yet in this event.")
+                st.warning("ℹ️ આ ઇવેન્ટમાં હજુ સુધી કોઈ ફોટા નથી.")
             else:
                 unique_labels = set()
                 for item in db_data:
                     unique_labels.add(item["person_label"])
                 persons_list = list(unique_labels)
-                st.sidebar.success(f"✅ {len(db_data)} faces indexed with FAISS")
-                st.sidebar.info(f"👤 Persons found: {', '.join(persons_list)}")
+                st.sidebar.success(f"✅ {len(db_data)} ચહેરા ઇન્ડેક્સ થયા")
+                st.sidebar.info(f"👤 વ્યક્તિઓ: {', '.join(persons_list)}")
                 
-                # ===== ગ્રાહક માટે બે વિકલ્પો =====
-                st.subheader("📸 Choose how to upload your photo")
+                st.subheader("📸 ફોટો અપલોડ કરવાની રીત")
                 upload_option = st.radio(
-                    "Select an option:",
-                    ["📸 Take a selfie (Camera)", "📁 Upload photo from gallery"],
+                    "વિકલ્પ પસંદ કરો:",
+                    ["📸 કેમેરાથી સેલ્ફી લો", "📁 ફોટો અપલોડ કરો"],
                     index=0,
                     key="upload_option"
                 )
                 
                 uploaded_file = None
                 
-                if upload_option == "📸 Take a selfie (Camera)":
-                    uploaded_file = st.camera_input("📸 Take a selfie", key="camera_input")
+                if upload_option == "📸 કેમેરાથી સેલ્ફી લો":
+                    uploaded_file = st.camera_input("📸 સેલ્ફી લો", key="camera_input")
                 else:
                     uploaded_file = st.file_uploader(
-                        "📁 Choose a photo...",
+                        "📁 ફોટો પસંદ કરો...",
                         type=["jpg", "jpeg", "png"],
                         key="file_uploader"
                     )
@@ -416,13 +637,13 @@ elif option == "🔍 Search Face":
                     
                     img = cv2.imread(tmp_path)
                     if img is not None:
-                        st.image(img, channels="BGR", caption="Uploaded Image", width=300)
-                        with st.spinner("Searching with FAISS..."):
+                        st.image(img, channels="BGR", caption="તમારો ફોટો", width=300)
+                        with st.spinner("🔍 તમારા ફોટા શોધાઈ રહ્યા છે..."):
                             faces = app.get(img)
                             if len(faces) == 0:
-                                st.warning("No faces detected!")
+                                st.warning("❌ ફોટામાં કોઈ ચહેરો દેખાયો નહીં!")
                             else:
-                                st.success(f"Detected {len(faces)} face(s)")
+                                st.success(f"✅ {len(faces)} ચહેરો શોધાયો!")
                                 faces = sorted(faces, key=lambda f: f.bbox[0])
                                 
                                 query_embeddings = []
@@ -475,7 +696,7 @@ elif option == "🔍 Search Face":
                                         else:
                                             match["decision"] = "WEAK"
                                 
-                                st.subheader("📸 Your Matched Photos")
+                                st.subheader("📸 તમારા મેચ થયેલા ફોટા")
                                 matched_persons = set()
                                 for match in result:
                                     if match is not None and match['similarity'] > 0.30:
@@ -483,7 +704,7 @@ elif option == "🔍 Search Face":
                                 
                                 if matched_persons:
                                     for person in matched_persons:
-                                        st.markdown(f"**Person: {person}**")
+                                        st.markdown(f"**👤 વ્યક્તિ: {person}**")
                                         person_photos = [item for item in db_data if item["person_label"] == person]
                                         if person_photos:
                                             for i in range(0, len(person_photos), 4):
@@ -499,20 +720,27 @@ elif option == "🔍 Search Face":
                                                             except:
                                                                 st.write(f"📁 {item['filename']}")
                                         else:
-                                            st.write("No photos found for this person.")
+                                            st.write("❌ આ વ્યક્તિના કોઈ ફોટા નથી.")
                                 else:
-                                    st.info("No strong matches found (score > 0.30).")
+                                    st.info("ℹ️ 30% થી વધુ સ્કોરવાળા કોઈ ફોટા નથી.")
+
 # ============================================================
-# PAGE 3: GENERATE QR CODE
+# 📱 PAGE 3: GENERATE QR CODE (QR કોડ બનાવો)
 # ============================================================
-elif option == "📱 Generate QR Code":
-    st.header("📱 Generate Event QR Code")
+elif option == "📱 QR કોડ બનાવો":
+    st.markdown("""
+    <div class="card">
+        <div class="card-title">📱 QR કોડ બનાવો</div>
+        <div class="card-desc">અહીં તમે કોઈ પણ ઇવેન્ટ માટે QR કોડ બનાવી શકો છો. ગ્રાહકો આ QR કોડ સ્કેન કરીને તેમના ફોટા શોધી શકશે.</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     events = get_events_list()
     
     if not events:
-        st.warning("No events found. Please create an event in '📂 Manage Events' first.")
+        st.warning("⚠️ હજુ સુધી કોઈ ઇવેન્ટ નથી. કૃપા કરીને '📂 ઇવેન્ટ મેનેજ' માં પહેલાં ઇવેન્ટ બનાવો.")
     else:
-        selected_event = st.selectbox("Select Event", events)
+        selected_event = st.selectbox("📂 ઇવેન્ટ પસંદ કરો", events)
         local_ip = get_local_ip()
         port = 8501
         
@@ -524,26 +752,31 @@ elif option == "📱 Generate QR Code":
             
             col1, col2 = st.columns([1, 1])
             with col1:
-                st.image(qr_img_array, caption=f"Scan for: {selected_event}", width='content')
-                st.success(f"📎 URL: {url}")
-                st.caption("📌 Phone must be on SAME Wi-Fi.")
+                st.image(qr_img_array, caption=f"📱 '{selected_event}' માટે QR કોડ", width='content')
+                st.success(f"🔗 URL: {url}")
+                st.caption("📌 ગ્રાહકો આ QR કોડ સ્કેન કરીને તેમના ફોટા જોઈ શકે છે.")
                 
                 from io import BytesIO
                 buffered = BytesIO()
                 qr_img.save(buffered, format="PNG")
-                st.download_button(label="⬇ Download QR Code", data=buffered.getvalue(), file_name=f"qr_{clean_event}.png", mime="image/png")
+                st.download_button(
+                    label="⬇ QR કોડ ડાઉનલોડ કરો",
+                    data=buffered.getvalue(),
+                    file_name=f"qr_{clean_event}.png",
+                    mime="image/png"
+                )
             
             with col2:
-                st.info("💡 How to use:")
-                st.write("1. Print & place at event.")
-                st.write("2. Customers scan with phone.")
-                st.write("3. Upload selfie to see photos.")
+                st.info("💡 કેવી રીતે વાપરવું?")
+                st.write("1. આ QR કોડને પ્રિન્ટ કરીને ઇવેન્ટમાં મૂકો.")
+                st.write("2. ગ્રાહકો ફોન વડે સ્કેન કરશે.")
+                st.write("3. તેઓ સેલ્ફી લઈને તેમના ફોટા જોશે.")
 
 # ============================================================
-# PAGE 4: BENCHMARK
+# 📊 PAGE 4: BENCHMARK
 # ============================================================
 else:
-    st.header("📊 Benchmark Results")
+    st.header("📊 બેન્ચમાર્ક પરિણામો")
     try:
         df = pd.read_csv("benchmark_results.csv")
         st.dataframe(df)
@@ -556,4 +789,14 @@ else:
         col3.metric("Avg Rank Score", f"{avg_rank:.1f}%")
         st.bar_chart(df.set_index('test')['ranking_accuracy'])
     except FileNotFoundError:
-        st.warning("benchmark_results.csv not found.")
+        st.warning("benchmark_results.csv મળી નહીં.")
+
+# ============================================================
+# 📌 FOOTER
+# ============================================================
+st.markdown("""
+<div class="footer">
+    📸 <strong>જય ફોટો શોધ</strong> - AI દ્વારા તમારા ફોટા શોધો<br>
+    © 2026 Jay Photography | Made with ❤️ in Gujarat
+</div>
+""", unsafe_allow_html=True)
