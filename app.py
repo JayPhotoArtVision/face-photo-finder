@@ -358,7 +358,6 @@ elif option == "🔍 Search Face":
             st.error(f"❌ Event '{event_name}' not found.")
         else:
             # ====== EVENT PASSWORD CHECK ======
-            # શું પાસવર્ડ પહેલેથી session માં સેવ છે?
             if f"auth_{event_name}" not in st.session_state:
                 st.session_state[f"auth_{event_name}"] = False
             
@@ -366,7 +365,6 @@ elif option == "🔍 Search Face":
                 st.header(f"🔒 Enter Password for: {event_name}")
                 entered_password = st.text_input("Event Password:", type="password")
                 if st.button("Access Event"):
-                    # ઇવેન્ટ ડેટા લોડ કરો
                     event_data = load_event_data(event_name)
                     if event_data.get("password") == entered_password:
                         st.session_state[f"auth_{event_name}"] = True
@@ -374,18 +372,16 @@ elif option == "🔍 Search Face":
                         st.rerun()
                     else:
                         st.error("❌ Incorrect Password!")
-                st.stop()  # અહીં એપ રોકાઈ જાય, ફોટા લોડ ન થાય
+                st.stop()
             
-            # ====== જો પાસવર્ડ સાચો હોય તો આગળ વધો ======
+            # ====== જો પાસવર્ડ સાચો હોય ======
             st.header(f"🔍 Searching photos for: {event_name}")
-            # ... બાકીનો આખો કોડ (ફોટા લોડ કરવો, search વગેરે) ...
             
             index, db_data = load_event_faiss_index(event_name)
             
             if index is None or len(db_data) == 0:
                 st.warning("No photos uploaded yet in this event.")
             else:
-                # 🔥 DYNAMIC PERSONS LIST: ઇવેન્ટમાંથી જ બધા લેબલ વાંચો
                 unique_labels = set()
                 for item in db_data:
                     unique_labels.add(item["person_label"])
@@ -393,7 +389,7 @@ elif option == "🔍 Search Face":
                 st.sidebar.success(f"✅ {len(db_data)} faces indexed with FAISS")
                 st.sidebar.info(f"👤 Persons found: {', '.join(persons_list)}")
                 
-                                # ===== ગ્રાહક માટે બે વિકલ્પો =====
+                # ===== ગ્રાહક માટે બે વિકલ્પો =====
                 st.subheader("📸 Choose how to upload your photo")
                 upload_option = st.radio(
                     "Select an option:",
@@ -412,7 +408,7 @@ elif option == "🔍 Search Face":
                         type=["jpg", "jpeg", "png"],
                         key="file_uploader"
                     )
-
+                
                 if uploaded_file is not None:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
                         tmp_file.write(uploaded_file.read())
@@ -441,10 +437,8 @@ elif option == "🔍 Search Face":
                                 for q_data in query_embeddings:
                                     q_face = q_data["query_face"]
                                     q_emb = np.array(q_data["embedding"], dtype=np.float32).reshape(1, -1)
-                                    
                                     k = min(10, len(db_data))
                                     scores, indices = index.search(q_emb, k)
-                                    
                                     query_face_matches[q_face] = []
                                     for score, idx in zip(scores[0], indices[0]):
                                         if score > 0:
@@ -454,7 +448,6 @@ elif option == "🔍 Search Face":
                                                 "filename": db_data[idx]["filename"]
                                             })
                                 
-                                # Global Assignment
                                 result = find_best_global_assignment(
                                     query_embeddings,
                                     query_face_matches,
@@ -483,23 +476,16 @@ elif option == "🔍 Search Face":
                                             match["decision"] = "WEAK"
                                 
                                 st.subheader("📸 Your Matched Photos")
-                                
-                                # 1. સૌપ્રથમ ઓળખો કે અપલોડ કરેલા ફોટામાં કઈ વ્યક્તિઓ (Persons) મેચ થઈ છે (અને જેનો સ્કોર 0.30 થી વધારે છે)
                                 matched_persons = set()
                                 for match in result:
                                     if match is not None and match['similarity'] > 0.30:
                                         matched_persons.add(match['person'])
                                 
-                                # 2. જો કોઈ વ્યક્તિ મેચ થઈ હોય, તો તે વ્યક્તિના **બધા જ** ફોટા બતાવો
                                 if matched_persons:
                                     for person in matched_persons:
                                         st.markdown(f"**Person: {person}**")
-                                        
-                                        # આ વ્યક્તિના બધા ફોટા ડેટાબેઝ (db_faces) માંથી શોધો
                                         person_photos = [item for item in db_data if item["person_label"] == person]
-                                        
                                         if person_photos:
-                                            # ફોટાને 4 કોલમની ગ્રીડમાં બતાવો
                                             for i in range(0, len(person_photos), 4):
                                                 cols = st.columns(4)
                                                 for j, col in enumerate(cols):
@@ -516,7 +502,6 @@ elif option == "🔍 Search Face":
                                             st.write("No photos found for this person.")
                                 else:
                                     st.info("No strong matches found (score > 0.30).")
-
 # ============================================================
 # PAGE 3: GENERATE QR CODE
 # ============================================================
