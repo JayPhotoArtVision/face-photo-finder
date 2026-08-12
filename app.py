@@ -312,33 +312,31 @@ if 'pending_faces' in st.session_state and st.session_state.pending_faces:
         st.rerun()
             
                         # ===== હાલનો ડેટા બતાવો (ટેક્સ્ટ + થંબનેઇલ) =====
-        st.divider()
-         data = load_event_data(selected_event)
-         st.write(f"📊 Total labeled faces in this event: **{len(data)}**")
-            
-                       # ===== હાલનો ડેટા બતાવો (થંબનેઇલ + ટેક્સ્ટ) =====
+                    # ============================================================
+            # EVENT DATA DISPLAY (Thumbnails + Labels)
+            # ============================================================
             st.divider()
-            event_data = load_event_data(selected_event)  # આ ડિક્શનરી છે
-            faces_list = event_data.get("faces", [])     # ફક્ત 'faces' ભાગ લો
+            
+            # ઇવેન્ટ ડેટા લોડ કરો
+            event_data = load_event_data(selected_event)
+            faces_list = event_data.get("faces", [])
             
             st.write(f"📊 Total labeled faces in this event: **{len(faces_list)}**")
             
             if len(faces_list) > 0:
                 st.subheader("🖼️ Labeled Photos (Thumbnails)")
-                # દરેક ૪ ઇમેજની ગ્રીડ (Grid) માં બતાવો
+                # 4 કોલમની ગ્રીડ
                 for i in range(0, len(faces_list), 4):
                     cols = st.columns(4)
                     for j, col in enumerate(cols):
                         idx = i + j
                         if idx < len(faces_list):
-                            item = faces_list[idx]  # હવે item યોગ્ય રીતે મળશે
-                            # ફોટાનો પાથ બનાવો
+                            item = faces_list[idx]
                             img_path = os.path.join("events", selected_event, "images", item["filename"])
                             with col:
                                 try:
-                                    # ફોટો બતાવો અને તેની નીચે લેબલ લખો
                                     st.image(img_path, caption=f"Label: {item['person_label']}", width=150)
-                                except Exception as e:
+                                except:
                                     st.write(f"❌ {item['filename']}")
             else:
                 st.info("No faces labeled yet in this event.")
