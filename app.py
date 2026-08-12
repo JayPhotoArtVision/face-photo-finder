@@ -312,7 +312,7 @@ if 'pending_faces' in st.session_state and st.session_state.pending_faces:
         st.rerun()
             
                         # ===== હાલનો ડેટા બતાવો (ટેક્સ્ટ + થંબનેઇલ) =====
-    st.divider()
+        st.divider()
             data = load_event_data(selected_event)
             st.write(f"📊 Total labeled faces in this event: **{len(data)}**")
             
