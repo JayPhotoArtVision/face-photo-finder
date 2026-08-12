@@ -710,20 +710,102 @@ elif option == "🔍 ફોટો શોધો":
                                 if matched_persons:
                                     for person in matched_persons:
                                         st.markdown(f"**👤 વ્યક્તિ: {person}**")
+                                        
                                         person_photos = [item for item in db_data if item["person_label"] == person]
+                                        
                                         if person_photos:
-                                            for i in range(0, len(person_photos), 4):
-                                                cols = st.columns(4)
-                                                for j, col in enumerate(cols):
-                                                    idx = i + j
-                                                    if idx < len(person_photos):
-                                                        item = person_photos[idx]
-                                                        img_path = os.path.join("events", event_name, "images", item["filename"])
-                                                        with col:
+                                            # ======================================================
+                                            # 🔥 તમે અહીં બધા ફેરફારો કરી શકો છો
+                                            # ======================================================
+                                            
+                                            # ---- ૧. કયા ફોટા ફ્રી છે તે નક્કી કરો ----
+                                            # અહીં તમે તમારી ઇચ્છા મુજબ લોજિક લખી શકો છો
+                                            # ઉદાહરણો:
+                                            # is_free = True  # બધા ફોટા ફ્રી
+                                            # is_free = (person == "રાજેશ")  # ફક્ત રાજેશના ફોટા ફ્રી
+                                            # is_free = (idx < 3)  # પહેલા ૩ ફોટા ફ્રી
+                                            # is_free = (item['similarity'] > 0.80)  # 80% થી વધુ ચોકસાઈવાળા ફોટા ફ્રી
+                                            
+                                            # ---- ૨. કિંમત (Price) નક્કી કરો ----
+                                            price = 10  # ₹10 (તમે ગમે તેટલા રૂપિયા રાખી શકો)
+                                            
+                                            # ---- ૩. દરેક ફોટો બતાવો અને ડાઉનલોડ બટન આપો ----
+                                            for idx, item in enumerate(person_photos):
+                                                img_path = os.path.join("events", event_name, "images", item["filename"])
+                                                
+                                                # 4 કોલમની ગ્રીડ
+                                                if idx % 4 == 0:
+                                                    cols = st.columns(4)
+                                                
+                                                col = cols[idx % 4]
+                                                with col:
+                                                    try:
+                                                        st.image(img_path, width=150)
+                                                    except:
+                                                        st.write(f"📁 {item['filename']}")
+                                                    
+                                                    # ===== તમારી ઇચ્છા મુજબ લોજિક અહીં લખો =====
+                                                    # ઉદાહરણ તરીકે: પહેલા 2 ફોટા ફ્રી, બાકીના પેઇડ
+                                                    is_free = (idx < 2)  # <--- આ લીટી બદલો!
+                                                    
+                                                    if is_free:
+                                                        st.markdown("🟢 **FREE**")
+                                                        try:
+                                                            with open(img_path, "rb") as f:
+                                                                st.download_button(
+                                                                    label="📥 ડાઉનલોડ કરો",
+                                                                    data=f,
+                                                                    file_name=item["filename"],
+                                                                    mime="image/jpeg",
+                                                                    key=f"free_dl_{person}_{idx}"
+                                                                )
+                                                        except:
+                                                            st.write("❌ ફોટો નથી")
+                                                    else:
+                                                        # ===== PAY =====
+                                                        st.markdown("🔴 **PAID**")
+                                                        # તમે કિંમત અહીં બદલી શકો છો
+                                                        price = 20  # <--- આ લીટી બદલો!
+                                                        
+                                                        if st.button(f"🔒 ડાઉનલોડ કરો (₹{price})", key=f"pay_btn_{person}_{idx}"):
+                                                            # ===== પેમેન્ટ ગેટવે (હાલમાં ડેમો) =====
+                                                            # અહીં તમે Razorpay, Stripe, અથવા Google Pay લિંક ઉમેરી શકો
+                                                            st.warning("💳 પેમેન્ટ ગેટવે અહીં આવશે! (ડેમો મોડ)")
+                                                            st.success("✅ પેમેન્ટ સફળ! હવે ડાઉનલોડ થશે.")
                                                             try:
-                                                                st.image(img_path, width=150)
+                                                                with open(img_path, "rb") as f:
+                                                                    st.download_button(
+                                                                        label="📥 ડાઉનલોડ કરો",
+                                                                        data=f,
+                                                                        file_name=item["filename"],
+                                                                        mime="image/jpeg",
+                                                                        key=f"paid_dl_{person}_{idx}"
+                                                                    )
                                                             except:
-                                                                st.write(f"📁 {item['filename']}")
+                                                                st.write("❌ ફોટો નથી")
+                                            
+                                            # ===== "બધા ડાઉનલોડ કરો" બટન (ફક્ત FREE ફોટા માટે) =====
+                                            # આ વૈકલ્પિક છે, તમે ઇચ્છો તો ઉમેરી/કાઢી શકો છો
+                                            free_photos = [p for p in person_photos if True]  # તમારી લોજિક મુજબ
+                                            if len(free_photos) > 1:
+                                                st.markdown("---")
+                                                if st.button(f"📥 {person} ના બધા FREE ફોટા ZIP માં ડાઉનલોડ કરો", key=f"zip_{person}"):
+                                                    import zipfile
+                                                    import io
+                                                    zip_buffer = io.BytesIO()
+                                                    with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                                                        for item in free_photos:
+                                                            img_path = os.path.join("events", event_name, "images", item["filename"])
+                                                            if os.path.exists(img_path):
+                                                                zip_file.write(img_path, item["filename"])
+                                                    zip_buffer.seek(0)
+                                                    st.download_button(
+                                                        label="📥 ZIP ડાઉનલોડ કરો",
+                                                        data=zip_buffer,
+                                                        file_name=f"{person}_free_photos.zip",
+                                                        mime="application/zip",
+                                                        key=f"zip_dl_{person}"
+                                                    )
                                         else:
                                             st.write("❌ આ વ્યક્તિના કોઈ ફોટા નથી.")
                                 else:
