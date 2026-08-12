@@ -123,12 +123,22 @@ def load_event_faiss_index(event_name):
     if not data:
         return None, None
     
-    embeddings = np.array([item["embedding"] for item in data], dtype=np.float32)
+    # ===== 🔥 ફક્ત યોગ્ય એમ્બેડિંગવાળા ફોટા લો =====
+    valid_faces = []
+    for item in data.get("faces", []):
+        emb = parse_embedding(item.get("embedding"))
+        if emb is not None:
+            valid_faces.append(item)
+    
+    if not valid_faces:
+        return None, None
+    
+    embeddings = np.array([item["embedding"] for item in valid_faces], dtype=np.float32)
     dim = embeddings.shape[1]
     index = faiss.IndexFlatIP(dim)
     index.add(embeddings)
     
-    return index, data
+    return index, valid_faces
 
 app = load_insightface()
 
