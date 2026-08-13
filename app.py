@@ -818,7 +818,7 @@ elif option == "🔍 ફોટો શોધો":
                                         # ============================================================
                                         if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
                                             # ===== UPI કન્ફિગ =====
-                                            MY_UPI_ID = "dineshmakwna123@oksbi"
+                                            MY_UPI_ID = "9173634111@axl"
                                             MY_NAME = "Jay Photography"
                                             order_id = f"PHOTO_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
                                             
