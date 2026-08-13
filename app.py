@@ -16,6 +16,12 @@ from PIL import Image
 import pandas as pd
 import urllib.parse
 
+# ============================================================
+# TELEGRAM BOT CONFIG (આ ભાગ ઉમેરો)
+# ============================================================
+TELEGRAM_BOT_TOKEN = "8961720068:AAHhM2DRBdMUc28nMIDtej1nMz1q3Dr8I7c"  # BotFather થી મળેલો Token
+TELEGRAM_CHAT_ID = "5981466470"      # તમારો Telegram User ID
+
 # ===== ફોટા ડાઉનલોડની ફિક્સ્ડ કિંમત (બધા ફોટા માટે સરખી) =====
 PHOTO_PRICE = 10 # અહીં તમને ગમે તે કિંમત લખો (દા.ત., 10, 25, 50, 100)
 
@@ -235,6 +241,23 @@ def get_local_ip():
         return ip
     except:
         return "127.0.0.1"
+
+    # ===== TELEGRAM MESSAGE FUNCTION (આ ભાગ ઉમેરો) =====
+import requests
+
+def send_telegram_message(message):
+    """ટેલિગ્રામ પર મેસેજ મોકલો"""
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML"
+    }
+    try:
+        response = requests.post(url, json=payload)
+        return response.status_code == 200
+    except:
+        return False
 
 def get_events_list():
     if not os.path.exists("events"):
@@ -724,6 +747,13 @@ elif option == "🔍 ફોટો શોધો":
                                         matched_persons.add(match['person'])
                                 
                                 if matched_persons:
+                                     # ===== 🔔 TELEGRAM NOTIFICATION (આ ભાગ ઉમેરો) =====
+                                    send_telegram_message(
+                                        f"✅ <b>નવો ગ્રાહક!</b>\n"
+                                        f"📸 ઇવેન્ટ: {event_name}\n"
+                                        f"👤 વ્યક્તિ: {', '.join(matched_persons)}\n"
+                                        f"🕒 {datetime.datetime.now().strftime('%d-%m-%Y %H:%M')}"
+                                    )
                                     # ============================================================
                                     # 🛒 CART SYSTEM - ફોટા સિલેક્ટ કરવા અને કુલ કિંમત બતાવવા
                                     # ============================================================
@@ -877,8 +907,24 @@ elif option == "🔍 ફોટો શોધો":
                                             # ===== પેમેન્ટ સફળ થયા પછી =====
                                             st.sidebar.markdown("---")
                                             if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!", use_container_width=True):
+                                                 # ===== 🔔 કાર્ટમાંથી ગ્રાહકના લેબલ વાંચો =====
+                                                # દરેક કાર્ટ આઇટમમાં 'person' (લેબલ) છે
+                                                unique_persons = set()
+                                                for item in cart:
+                                                    unique_persons.add(item['person'])
+                                                persons_text = ", ".join(unique_persons)
+                                                
+                                                # ===== ટેલિગ્રામ મેસેજ (લેબલ સાથે) =====
+                                                send_telegram_message(
+                                                    f"💰 <b>પેમેન્ટ મળ્યું!</b>\n"
+                                                    f"📸 ઇવેન્ટ: {event_name}\n"
+                                                    f"👤 ગ્રાહક(ઓ): {persons_text}\n"   # <--- અહીં લેબલ દેખાશે
+                                                    f"💵 રકમ: ₹{total_price}\n"
+                                                    f"🕒 {datetime.datetime.now().strftime('%d-%m-%Y %H:%M')}"
+                                                )
                                                 st.session_state.payment_done = True
                                                 st.rerun()
+
                                         
                                         # ============================================================
                                         # 🔓 PAYMENT DONE → DOWNLOAD + SHARING
