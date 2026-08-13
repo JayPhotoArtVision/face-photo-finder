@@ -814,27 +814,61 @@ elif option == "🔍 ફોટો શોધો":
                                             st.rerun()
                                         
                                         # ============================================================
-                                        # 🧾 CHECKOUT (UPI PAYMENT)
+                                        # 🧾 CHECKOUT (UPI PAYMENT WITH APP SELECTION)
                                         # ============================================================
                                         if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
                                             # ===== UPI કન્ફિગ =====
-                                            MY_UPI_ID = "9173634111@axl"
+                                            MY_UPI_ID = "dineshmakwna123@oksbi"
                                             MY_NAME = "Jay Photography"
                                             order_id = f"PHOTO_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
                                             
-                                            # ===== Google Pay લિંક =====
-                                            gpay_link = f"gpay://upi/pay?pa={MY_UPI_ID}&pn={urllib.parse.quote(MY_NAME)}&am={total_price}&cu=INR"
+                                            # ===== UPI પેરામીટર્સ =====
+                                            encoded_name = urllib.parse.quote(MY_NAME)
+                                            encoded_note = urllib.parse.quote("Photo Download Payment")
                                             
-                                            # ===== UPI લિંક ખોલો =====
+                                            # ===== UPI લિંક્સ (દરેક એપ માટે) =====
+                                            upi_links = {
+                                                "📱 Google Pay": f"gpay://upi/pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR&tn={encoded_note}&tr={order_id}",
+                                                "📱 PhonePe": f"phonepe://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}",
+                                                "📱 Paytm": f"paytmmp://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}",
+                                                "📱 BHIM": f"bhim://upi://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR",
+                                                "📱 Generic UPI": f"upi://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR&tn={encoded_note}&tr={order_id}"
+                                            }
+                                            
+                                            # ===== દરેક એપ માટે બટન (કોલમ્સમાં) =====
+                                            st.sidebar.markdown("### 💳 તમારી UPI એપ પસંદ કરો:")
+                                            st.sidebar.markdown("*નીચેનામાંથી કોઈ પણ વિકલ્પ પસંદ કરો*")
+                                            
                                             import webbrowser
-                                            webbrowser.open(gpay_link)
                                             
-                                            # ===== UPI ID બતાવો (જો લિંક ન ખુલે તો) =====
-                                            st.sidebar.code(f"UPI ID: {MY_UPI_ID}")
-                                            st.sidebar.write("📋 ઉપરનું UPI ID કોપી કરીને Google Pay/PhonePe માં પેમેન્ટ કરો.")
+                                            col1, col2 = st.sidebar.columns(2)
+                                            
+                                            with col1:
+                                                if st.button("🟢 Google Pay", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 Google Pay"])
+                                                    st.success("✅ Google Pay ખુલી રહી છે...")
+                                                
+                                                if st.button("🟠 PhonePe", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 PhonePe"])
+                                                    st.success("✅ PhonePe ખુલી રહી છે...")
+                                            
+                                            with col2:
+                                                if st.button("🔵 Paytm", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 Paytm"])
+                                                    st.success("✅ Paytm ખુલી રહી છે...")
+                                                
+                                                if st.button("🟣 BHIM", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 BHIM"])
+                                                    st.success("✅ BHIM ખુલી રહી છે...")
+                                            
+                                            # ===== Generic UPI (બાકીની એપ્સ માટે) =====
+                                            if st.sidebar.button("📱 અન્ય UPI એપ", use_container_width=True):
+                                                webbrowser.open(upi_links["📱 Generic UPI"])
+                                                st.success("✅ UPI એપ ખુલી રહી છે...")
                                             
                                             # ===== પેમેન્ટ સફળ થયા પછી =====
-                                            if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!"):
+                                            st.sidebar.markdown("---")
+                                            if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!", use_container_width=True):
                                                 st.session_state.payment_done = True
                                                 st.rerun()
                                         
