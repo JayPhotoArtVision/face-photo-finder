@@ -14,6 +14,7 @@ from insightface.app import FaceAnalysis
 from face_search import find_best_global_assignment
 from PIL import Image
 import pandas as pd
+import urllib.parse
 
 # ===== ફોટા ડાઉનલોડની ફિક્સ્ડ કિંમત (બધા ફોટા માટે સરખી) =====
 PHOTO_PRICE = 10 # અહીં તમને ગમે તે કિંમત લખો (દા.ત., 10, 25, 50, 100)
