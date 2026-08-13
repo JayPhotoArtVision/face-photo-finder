@@ -787,7 +787,7 @@ elif option == "🔍 ફોટો શોધો":
                                         else:
                                             st.write("❌ આ વ્યક્તિના કોઈ ફોટા નથી.")
                                     
-                                                                        # ============================================================
+                                    # ============================================================
                                     # 🛒 CART DISPLAY + PAYMENT + SHARING
                                     # ============================================================
                                     st.sidebar.markdown("---")
@@ -812,23 +812,39 @@ elif option == "🔍 ફોટો શોધો":
                                             st.session_state.payment_done = False
                                             st.rerun()
                                         
-                                        # ===== "🧾 ચેકઆઉટ" બટન (પેમેન્ટ) =====
+                                        # ============================================================
+                                        # 🧾 CHECKOUT (UPI PAYMENT)
+                                        # ============================================================
                                         if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
-                                            # ===== પેમેન્ટ ગેટવે (ડેમો) =====
-                                            st.sidebar.success("✅ પેમેન્ટ સફળ! (ડેમો મોડ)")
-                                            st.sidebar.info("💳 વાસ્તવિક પેમેન્ટ માટે Razorpay/Stripe ઉમેરો.")
-                                            # પેમેન્ટ સફળ થયા પછી ફ્લેગ સેટ કરો
-                                            st.session_state.payment_done = True
-                                            st.rerun()
+                                            # ===== UPI કન્ફિગ =====
+                                            MY_UPI_ID = "dineshmakwna123@oksbi"
+                                            MY_NAME = "Jay Photography"
+                                            order_id = f"PHOTO_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+                                            
+                                            # ===== Google Pay લિંક =====
+                                            gpay_link = f"gpay://upi/pay?pa={MY_UPI_ID}&pn={urllib.parse.quote(MY_NAME)}&am={total_price}&cu=INR"
+                                            
+                                            # ===== UPI લિંક ખોલો =====
+                                            import webbrowser
+                                            webbrowser.open(gpay_link)
+                                            
+                                            # ===== UPI ID બતાવો (જો લિંક ન ખુલે તો) =====
+                                            st.sidebar.code(f"UPI ID: {MY_UPI_ID}")
+                                            st.sidebar.write("📋 ઉપરનું UPI ID કોપી કરીને Google Pay/PhonePe માં પેમેન્ટ કરો.")
+                                            
+                                            # ===== પેમેન્ટ સફળ થયા પછી =====
+                                            if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!"):
+                                                st.session_state.payment_done = True
+                                                st.rerun()
                                         
                                         # ============================================================
-                                        # 🔓 પેમેન્ટ પછી જ ડાઉનલોડ + શેર બટન ખુલે
+                                        # 🔓 PAYMENT DONE → DOWNLOAD + SHARING
                                         # ============================================================
                                         if st.session_state.get("payment_done", False):
                                             st.sidebar.markdown("---")
                                             st.sidebar.markdown("## 📥 તમારા ફોટા ડાઉનલોડ કરો")
                                             
-                                            # ===== "બધા ડાઉનલોડ કરો" બટન =====
+                                            # ===== "બધા ડાઉનલોડ કરો" (ZIP) =====
                                             if st.sidebar.button("📥 બધા ફોટા ડાઉનલોડ કરો (ZIP)"):
                                                 import zipfile
                                                 import io
@@ -866,25 +882,20 @@ elif option == "🔍 ફોટો શોધો":
                                             st.sidebar.markdown("---")
                                             st.sidebar.markdown("## 📤 તમારા ફોટા શેર કરો")
                                             
-                                            # એપ લિંક (તમારી એપની લિંક)
                                             app_url = "https://jayphotofinder.streamlit.app"
                                             share_text = "🌟 મારા ઇવેન્ટના સુંદર ફોટા જુઓ! જય ફોટો શોધ દ્વારા શોધ્યા."
                                             
-                                            # WhatsApp
                                             whatsapp_url = f"https://api.whatsapp.com/send?text={share_text} {app_url}"
                                             st.sidebar.markdown(f"[![WhatsApp](https://img.icons8.com/color/48/000000/whatsapp.png)]({whatsapp_url}) શેર કરો")
                                             
-                                            # Facebook
                                             facebook_url = f"https://www.facebook.com/sharer/sharer.php?u={app_url}"
                                             st.sidebar.markdown(f"[![Facebook](https://img.icons8.com/color/48/000000/facebook.png)]({facebook_url}) શેર કરો")
                                             
-                                            # Instagram (Direct share not possible, so copy link)
                                             st.sidebar.markdown("📸 **Instagram:** લિંક કોપી કરીને પેસ્ટ કરો")
                                             if st.sidebar.button("📋 લિંક કોપી કરો"):
                                                 st.sidebar.code(app_url)
                                                 st.sidebar.success("✅ લિંક કોપી થઈ ગઈ!")
                                             
-                                            # Email
                                             email_url = f"mailto:?subject=મારા ફોટા જુઓ&body={share_text} {app_url}"
                                             st.sidebar.markdown(f"[![Email](https://img.icons8.com/color/48/000000/gmail.png)]({email_url}) ઈમેઈલ દ્વારા શેર કરો")
                                             
