@@ -847,29 +847,32 @@ elif option == "🔍 ફોટો શોધો":
                                                 "📱 Generic UPI": f"upi://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR&tn={encoded_note}&tr={order_id}"
                                             }
                                             
-                                             # ===== UPI લોગો સાથે કસ્ટમ બટનો =====
+                                            # ===== UPI લોગો સાથે કસ્ટમ બટનો =====
                                             st.sidebar.markdown("### 💳 તમારી UPI એપ પસંદ કરો:")
                                             
                                             col1, col2 = st.sidebar.columns(2)
                                             
                                             with col1:
-                                                # Google Pay
-                                            # ===== UPI એપ બટનો (સાચા નામ સાથે) =====
-                                            if st.sidebar.button("🟢 Google Pay", use_container_width=True):
-                                                webbrowser.open(upi_links["📱 Google Pay"])
-                                                st.sidebar.success("✅ Google Pay ખુલી રહી છે...")
+                                                # ===== Google Pay =====
+                                                if st.sidebar.button("🟢 Google Pay", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 Google Pay"])
+                                                    st.sidebar.success("✅ Google Pay ખુલી રહી છે...")
+                                                
+                                                # ===== Paytm =====
+                                                if st.sidebar.button("🔵 Paytm", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 Paytm"])
+                                                    st.sidebar.success("✅ Paytm ખુલી રહી છે...")
                                             
-                                            if st.sidebar.button("🟠 PhonePe", use_container_width=True):
-                                                webbrowser.open(upi_links["📱 PhonePe"])
-                                                st.sidebar.success("✅ PhonePe ખુલી રહી છે...")
-                                            
-                                            if st.sidebar.button("🔵 Paytm", use_container_width=True):
-                                                webbrowser.open(upi_links["📱 Paytm"])
-                                                st.sidebar.success("✅ Paytm ખુલી રહી છે...")
-                                            
-                                            if st.sidebar.button("🟣 BHIM", use_container_width=True):
-                                                webbrowser.open(upi_links["📱 BHIM"])
-                                                st.sidebar.success("✅ BHIM ખુલી રહી છે...")
+                                            with col2:
+                                                # ===== PhonePe =====
+                                                if st.sidebar.button("🟠 PhonePe", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 PhonePe"])
+                                                    st.sidebar.success("✅ PhonePe ખુલી રહી છે...")
+                                                
+                                                # ===== BHIM =====
+                                                if st.sidebar.button("🟣 BHIM", use_container_width=True):
+                                                    webbrowser.open(upi_links["📱 BHIM"])
+                                                    st.sidebar.success("✅ BHIM ખુલી રહી છે...")
                                             
                                             # ===== પેમેન્ટ સફળ થયા પછી =====
                                             st.sidebar.markdown("---")
