@@ -186,19 +186,25 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 🏠 HEADER
+# 🏠 HEADER - મોટો લોગો + મોટું નામ
 # ============================================================
-col1, col2 = st.columns([1, 6])
+col1, col2 = st.columns([1, 5])
+
 with col1:
     try:
-        st.image("assets/logo.jpg", width=70)
+        st.image("assets/logo.jpg", width=100)  # લોગો મોટો (100px)
     except:
         st.markdown("## 📸")
+
 with col2:
     st.markdown("""
-    <div class="brand-text">
-        <h1>જય <span>ફોટો</span> શોધ</h1>
-        <div class="tagline">✨ AI દ્વારા તમારા ઇવેન્ટના યાદગાર ક્ષણો શોધો</div>
+    <div class="brand-text" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
+        <h1 style="font-size: 2.8rem; font-weight: 900; color: #0f0f0f; margin: 0; letter-spacing: -1px;">
+            JAY <span style="color: #d4af37;">PHOTO</span> SHODH
+        </h1>
+        <div style="font-size: 0.9rem; color: #6c757d; margin-top: -5px; font-weight: 400; letter-spacing: 2px;">
+            ✨ AI POWERED PHOTO SEARCH
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -302,12 +308,18 @@ def check_password():
     return False
 
 # ============================================================
-# SIDEBAR NAVIGATION
+# 🧭 SIDEBAR - મોટો લોગો + JAY PHOTO ART
 # ============================================================
 st.sidebar.markdown("""
-<div class="sidebar-logo">
-    <img src="https://raw.githubusercontent.com/JayPhotoArtVision/face-photo-finder/main/assets/logo.jpg" alt="Logo">
-    <div class="brand-name">જય <span>ફોટો</span></div>
+<div style="text-align: center; padding: 0 0 1.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;">
+    <img src="https://raw.githubusercontent.com/JayPhotoArtVision/face-photo-finder/main/assets/logo.jpg" 
+         style="width: 100%; max-width: 220px; border-radius: 16px; background: white; padding: 8px; margin-bottom: 10px;">
+    <div style="color: white; font-weight: 800; font-size: 1.4rem; margin: 0; letter-spacing: 1px;">
+        JAY <span style="color: #d4af37;">PHOTO</span>
+    </div>
+    <div style="color: #adb5bd; font-size: 0.7rem; font-weight: 400; letter-spacing: 3px; margin-top: 2px;">
+        ART
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -835,36 +847,44 @@ elif option == "🔍 ફોટો શોધો":
                                                 "📱 Generic UPI": f"upi://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR&tn={encoded_note}&tr={order_id}"
                                             }
                                             
-                                            # ===== દરેક એપ માટે બટન (કોલમ્સમાં) =====
+                                             # ===== UPI લોગો સાથે કસ્ટમ બટનો =====
                                             st.sidebar.markdown("### 💳 તમારી UPI એપ પસંદ કરો:")
-                                            st.sidebar.markdown("*નીચેનામાંથી કોઈ પણ વિકલ્પ પસંદ કરો*")
-                                            
-                                            import webbrowser
                                             
                                             col1, col2 = st.sidebar.columns(2)
                                             
                                             with col1:
-                                                if st.button("🟢 Google Pay", use_container_width=True):
+                                                # Google Pay
+                                                if st.button(
+                                                    "🟢 Google Pay", 
+                                                    use_container_width=True
+                                                ):
                                                     webbrowser.open(upi_links["📱 Google Pay"])
                                                     st.success("✅ Google Pay ખુલી રહી છે...")
                                                 
-                                                if st.button("🟠 PhonePe", use_container_width=True):
-                                                    webbrowser.open(upi_links["📱 PhonePe"])
-                                                    st.success("✅ PhonePe ખુલી રહી છે...")
-                                            
-                                            with col2:
-                                                if st.button("🔵 Paytm", use_container_width=True):
+                                                # Paytm
+                                                if st.button(
+                                                    "🔵 Paytm", 
+                                                    use_container_width=True
+                                                ):
                                                     webbrowser.open(upi_links["📱 Paytm"])
                                                     st.success("✅ Paytm ખુલી રહી છે...")
+                                            
+                                            with col2:
+                                                # PhonePe
+                                                if st.button(
+                                                    "🟠 PhonePe", 
+                                                    use_container_width=True
+                                                ):
+                                                    webbrowser.open(upi_links["📱 PhonePe"])
+                                                    st.success("✅ PhonePe ખુલી રહી છે...")
                                                 
-                                                if st.button("🟣 BHIM", use_container_width=True):
+                                                # BHIM
+                                                if st.button(
+                                                    "🟣 BHIM", 
+                                                    use_container_width=True
+                                                ):
                                                     webbrowser.open(upi_links["📱 BHIM"])
                                                     st.success("✅ BHIM ખુલી રહી છે...")
-                                            
-                                            # ===== Generic UPI (બાકીની એપ્સ માટે) =====
-                                            if st.sidebar.button("📱 અન્ય UPI એપ", use_container_width=True):
-                                                webbrowser.open(upi_links["📱 Generic UPI"])
-                                                st.success("✅ UPI એપ ખુલી રહી છે...")
                                             
                                             # ===== પેમેન્ટ સફળ થયા પછી =====
                                             st.sidebar.markdown("---")
