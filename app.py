@@ -19,8 +19,23 @@ import urllib.parse
 # ============================================================
 # TELEGRAM BOT CONFIG (આ ભાગ ઉમેરો)
 # ============================================================
-TELEGRAM_BOT_TOKEN = "8961720068:AAHhM2DRBdMUc28nMIDtej1nMz1q3Dr8I7c"  # BotFather થી મળેલો Token
-TELEGRAM_CHAT_ID = "5981466470"      # તમારો Telegram User ID
+def send_telegram_message(message):
+    """ટેલિગ્રામ પર મેસેજ મોકલો"""
+    # ===== st.secrets માંથી Token અને Chat ID લો =====
+    TELEGRAM_BOT_TOKEN = st.secrets["telegram"]["bot_token"]
+    TELEGRAM_CHAT_ID = st.secrets["telegram"]["chat_id"]
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML"
+    }
+    try:
+        response = requests.post(url, json=payload)
+        return response.status_code == 200
+    except:
+        return False
 
 # ===== ફોટા ડાઉનલોડની ફિક્સ્ડ કિંમત (બધા ફોટા માટે સરખી) =====
 PHOTO_PRICE = 10 # અહીં તમને ગમે તે કિંમત લખો (દા.ત., 10, 25, 50, 100)
@@ -190,6 +205,65 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+    /* ================================================================
+       📱 MOBILE RESPONSIVE (ફક્ત નાની સ્ક્રીન માટે)
+       ================================================================ */
+    @media (max-width: 768px) {
+        /* ===== હેડર ===== */
+        .logo-area img {
+            height: 40px !important;
+        }
+        .brand-text h1 {
+            font-size: 1.5rem !important;
+        }
+        .brand-text .tagline {
+            font-size: 0.7rem !important;
+        }
+        
+        /* ===== કાર્ડ્સ ===== */
+        .card {
+            padding: 1rem !important;
+            border-radius: 16px !important;
+        }
+        .card-title {
+            font-size: 1.1rem !important;
+        }
+        .card-desc {
+            font-size: 0.85rem !important;
+        }
+        
+        /* ===== બટનો ===== */
+        .stButton button {
+            font-size: 0.8rem !important;
+            padding: 0.4rem 1.2rem !important;
+            width: 100% !important;
+        }
+        
+        /* ===== ઇમેજ ગ્રીડ ===== */
+        .stImage {
+            width: 100% !important;
+        }
+        
+        /* ===== સાઇડબાર ===== */
+        section[data-testid="stSidebar"] {
+            padding: 0.5rem !important;
+        }
+        .sidebar-logo img {
+            max-width: 120px !important;
+        }
+        .sidebar-logo .brand-name {
+            font-size: 1rem !important;
+        }
+        
+        /* ===== કાર્ટ ===== */
+        .stSidebar .stColumns {
+            gap: 0.3rem !important;
+        }
+        .stSidebar .stButton button {
+            font-size: 0.7rem !important;
+            padding: 0.3rem 0.6rem !important;
+        }
+    }
 
 # ============================================================
 # 🏠 HEADER - મોટો લોગો + મોટું નામ
@@ -198,7 +272,7 @@ col1, col2 = st.columns([1, 5])
 
 with col1:
     try:
-        st.image("assets/logo.jpg", width=100)  # લોગો મોટો (100px)
+        st.image("assets/logo.jpg", width=100)  # લોગો મોટો (150px)
     except:
         st.markdown("## 📸")
 
@@ -596,6 +670,23 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                                     st.write(f"❌ {item['filename']}")
             else:
                 st.info("ℹ️ હજુ સુધી કોઈ ફોટો લેબલ થયો નથી.")
+                # ============================================================
+            # 🗑️ DELETE EVENT (ઇવેન્ટ કાઢી નાખો)  <--- આ કોડ અહીં મૂકો
+            # ============================================================
+            st.divider()
+            st.markdown("### 🗑️ ઇવેન્ટ કાઢી નાખો")
+            st.warning(f"⚠️ આ ઇવેન્ટ ('{selected_event}') અને તેના બધા ફોટા કાયમ માટે ડિલીટ થઈ જશે!")
+            
+            if st.button(f"🗑️ '{selected_event}' ઇવેન્ટ કાઢી નાખો", type="primary"):
+                import shutil
+                event_folder = os.path.join("events", selected_event)
+                try:
+                    shutil.rmtree(event_folder)
+                    st.success(f"✅ '{selected_event}' ઇવેન્ટ સફળતાપૂર્વક ડિલીટ થઈ ગઈ!")
+                    st.session_state.pending_faces = []
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ ઇવેન્ટ ડિલીટ કરતી વખતે ભૂલ: {e}")
 
 # ============================================================
 # PAGE 2: SEARCH FACE
