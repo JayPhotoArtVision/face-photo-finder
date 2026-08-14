@@ -6,4 +6,4 @@ onnxruntime
 qrcode[pil]
 pandas
 faiss-cpu
-requests   # <--- આ ઉમેરો
+requests   # <---
