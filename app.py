@@ -914,12 +914,14 @@ elif option == "🔍 ફોટો શોધો":
                                                     st.sidebar.success("✅ Paytm ખુલી રહી છે...")
                                             
                                             with col2:
+                                                # ===== PhonePe =====
                                                 if st.sidebar.button("🟠 PhonePe", use_container_width=True):
                                                     webbrowser.open(upi_links["📱 PhonePe"])
                                                     st.sidebar.success("✅ PhonePe ખુલી રહી છે...")
                                                 
+                                                # ===== BHIM =====
                                                 if st.sidebar.button("🟣 BHIM", use_container_width=True):
-                                                    webbrowser.open(upi_links📱 BHIM"])
+                                                    webbrowser.open(upi_links["📱 BHIM"])
                                                     st.sidebar.success("✅ BHIM ખુલી રહી છે...")
                                             
                                             st.sidebar.markdown("---")
