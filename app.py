@@ -18,6 +18,9 @@ import pandas as pd
 from insightface.app import FaceAnalysis
 from face_search import find_best_global_assignment
 from PIL import Image
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 # ============================================================
 # ENVIRONMENT VARIABLE (OpenCV માટે)
@@ -34,13 +37,150 @@ st.set_page_config(
 )
 
 # ============================================================
-# ANALYTICS - LOG ACTIVITY
+# GOOGLE DRIVE INTEGRATION
+# ============================================================
+def get_drive_service():
+    """Google Drive API સર્વિસ ઑબ્જેક્ટ બનાવો"""
+    service_account_info = st.secrets["google"]["service_account_info"]
+    creds = service_account.Credentials.from_service_account_info(
+        service_account_info,
+        scopes=['https://www.googleapis.com/auth/drive.file']
+    )
+    return build('drive', 'v3', credentials=creds)
+
+def get_drive_folder_id(event_name):
+    """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
+    drive_service = get_drive_service()
+    
+    # પહેલાં ફોલ્ડર શોધો
+    query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    folders = results.get('files', [])
+    
+    if folders:
+        return folders[0]['id']
+    
+    # જો ન મળે તો નવું ફોલ્ડર બનાવો
+    file_metadata = {
+        'name': event_name,
+        'mimeType': 'application/vnd.google-apps.folder'
+    }
+    folder = drive_service.files().create(body=file_metadata, fields='id').execute()
+    return folder.get('id')
+
+def upload_to_drive(file_path, folder_id):
+    """Google Drive પર ફોટો અપલોડ કરો અને File ID પાછો આપો"""
+    try:
+        drive_service = get_drive_service()
+        file_metadata = {
+            'name': os.path.basename(file_path),
+            'parents': [folder_id]
+        }
+        media = MediaFileUpload(file_path, resumable=True)
+        file = drive_service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+        return file.get('id')
+    except Exception as e:
+        st.error(f"❌ Google Drive upload error: {e}")
+        return None
+
+def load_event_data_from_drive(event_name):
+    """Google Drive પરથી ઇવેન્ટનું data.json વાંચો"""
+    try:
+        drive_service = get_drive_service()
+        folder_id = get_drive_folder_id(event_name)
+        
+        query = f"name='data.json' and '{folder_id}' in parents and trashed=false"
+        results = drive_service.files().list(q=query, fields="files(id)").execute()
+        files = results.get('files', [])
+        
+        if not files:
+            return {"password": "", "faces": []}
+        
+        file_id = files[0]['id']
+        request = drive_service.files().get_media(fileId=file_id)
+        file_content = request.execute()
+        data = json.loads(file_content.decode('utf-8'))
+        
+        if isinstance(data, list):
+            data = {"password": "", "faces": data}
+        
+        for face in data.get("faces", []):
+            if "embedding" in face and isinstance(face["embedding"], str):
+                try:
+                    face["embedding"] = json.loads(face["embedding"])
+                except:
+                    face["embedding"] = []
+        return data
+    except Exception as e:
+        return {"password": "", "faces": []}
+
+def save_event_data_to_drive(event_name, data):
+    """Google Drive પર ઇવેન્ટનું data.json સેવ કરો"""
+    try:
+        drive_service = get_drive_service()
+        folder_id = get_drive_folder_id(event_name)
+        
+        # Temp file બનાવો
+        temp_path = f"temp_{event_name}_data.json"
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        
+        # જૂનું data.json ડિલીટ કરો
+        query = f"name='data.json' and '{folder_id}' in parents and trashed=false"
+        results = drive_service.files().list(q=query, fields="files(id)").execute()
+        for file in results.get('files', []):
+            drive_service.files().delete(fileId=file['id']).execute()
+        
+        # નવું data.json અપલોડ કરો
+        media = MediaFileUpload(temp_path, mimetype='application/json')
+        file_metadata = {
+            'name': 'data.json',
+            'parents': [folder_id]
+        }
+        drive_service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+        
+        os.remove(temp_path)
+        return True
+    except Exception as e:
+        st.error(f"❌ Error saving to Drive: {e}")
+        return False
+
+# ============================================================
+# HELPER FUNCTIONS (Events)
+# ============================================================
+def get_events_list():
+    """Drive પરથી બધી ઇવેન્ટ્સ શોધો"""
+    try:
+        drive_service = get_drive_service()
+        query = "mimeType='application/vnd.google-apps.folder' and trashed=false"
+        results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+        folders = results.get('files', [])
+        return [f['name'] for f in folders if f['name'] not in ['images', 'temp_crops']]
+    except:
+        return []
+
+def load_event_data(event_name):
+    """Drive પરથી ઇવેન્ટ ડેટા લોડ કરો"""
+    return load_event_data_from_drive(event_name)
+
+def save_event_data(event_name, data):
+    """Drive પર ઇવેન્ટ ડેટા સેવ કરો"""
+    return save_event_data_to_drive(event_name, data)
+
+# ============================================================
+# ANALYTICS
 # ============================================================
 def log_activity(event_name, activity_type, person_label="", amount=0):
-    """ગ્રાહકની પ્રવૃત્તિ CSV માં લોગ કરો"""
     log_file = "analytics.csv"
     file_exists = os.path.exists(log_file)
-    
     try:
         with open(log_file, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
@@ -49,7 +189,7 @@ def log_activity(event_name, activity_type, person_label="", amount=0):
             writer.writerow([
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 event_name,
-                activity_type,  # "search", "payment"
+                activity_type,
                 person_label,
                 amount
             ])
@@ -58,16 +198,12 @@ def log_activity(event_name, activity_type, person_label="", amount=0):
         return False
 
 # ============================================================
-# CUSTOM CSS - પ્રોફેશનલ ડિઝાઇન + મોબાઇલ રિસ્પોન્સિવ
+# CUSTOM CSS (Mobile Responsive)
 # ============================================================
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
-    
-    * {
-        font-family: 'Inter', sans-serif;
-    }
-    
+    * { font-family: 'Inter', sans-serif; }
     .main-header {
         display: flex;
         align-items: center;
@@ -102,7 +238,6 @@ st.markdown("""
         color: #6c757d;
         margin: -5px 0 0 0;
     }
-    
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
         padding: 2rem 1rem;
@@ -130,7 +265,6 @@ st.markdown("""
     .sidebar-logo .brand-name span {
         color: #d4af37;
     }
-    
     .card {
         background: white;
         border: 1px solid #f0f0f0;
@@ -155,7 +289,6 @@ st.markdown("""
         color: #6c757d;
         line-height: 1.6;
     }
-    
     .stButton button {
         background: linear-gradient(135deg, #0f0f0f 0%, #333333 100%) !important;
         color: white !important;
@@ -172,7 +305,6 @@ st.markdown("""
         box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
         background: linear-gradient(135deg, #1a1a1a 0%, #444444 100%) !important;
     }
-    
     .footer {
         text-align: center;
         padding: 2rem 0 0.5rem 0;
@@ -189,71 +321,34 @@ st.markdown("""
     .footer span {
         color: #d4af37;
     }
-    
     @media (max-width: 768px) {
-        .logo-area img {
-            height: 40px !important;
-        }
-        .brand-text h1 {
-            font-size: 1.5rem !important;
-        }
-        .brand-text .tagline {
-            font-size: 0.7rem !important;
-        }
-        .main-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-        .card {
-            padding: 1rem !important;
-            border-radius: 16px !important;
-        }
-        .card-title {
-            font-size: 1.1rem !important;
-        }
-        .card-desc {
-            font-size: 0.85rem !important;
-        }
-        .stButton button {
-            font-size: 0.8rem !important;
-            padding: 0.4rem 1.2rem !important;
-            width: 100% !important;
-        }
-        .stImage {
-            width: 100% !important;
-        }
-        section[data-testid="stSidebar"] {
-            padding: 0.5rem !important;
-        }
-        .sidebar-logo img {
-            max-width: 120px !important;
-        }
-        .sidebar-logo .brand-name {
-            font-size: 1rem !important;
-        }
-        .stSidebar .stColumns {
-            gap: 0.3rem !important;
-        }
-        .stSidebar .stButton button {
-            font-size: 0.7rem !important;
-            padding: 0.3rem 0.6rem !important;
-        }
+        .logo-area img { height: 40px !important; }
+        .brand-text h1 { font-size: 1.5rem !important; }
+        .brand-text .tagline { font-size: 0.7rem !important; }
+        .main-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .card { padding: 1rem !important; border-radius: 16px !important; }
+        .card-title { font-size: 1.1rem !important; }
+        .card-desc { font-size: 0.85rem !important; }
+        .stButton button { font-size: 0.8rem !important; padding: 0.4rem 1.2rem !important; width: 100% !important; }
+        .stImage { width: 100% !important; }
+        section[data-testid="stSidebar"] { padding: 0.5rem !important; }
+        .sidebar-logo img { max-width: 120px !important; }
+        .sidebar-logo .brand-name { font-size: 1rem !important; }
+        .stSidebar .stColumns { gap: 0.3rem !important; }
+        .stSidebar .stButton button { font-size: 0.7rem !important; padding: 0.3rem 0.6rem !important; }
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 🏠 HEADER - મોટો લોગો + મોટું નામ
+# HEADER & SIDEBAR
 # ============================================================
 col1, col2 = st.columns([1, 5])
-
 with col1:
     try:
         st.image("assets/logo.jpg", width=100)
     except:
         st.markdown("## 📸")
-
 with col2:
     st.markdown("""
     <div class="brand-text" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
@@ -266,110 +361,23 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
 
-# ============================================================
-# TELEGRAM BOT (Secrets માંથી)
-# ============================================================
-def send_telegram_message(message):
-    try:
-        TELEGRAM_BOT_TOKEN = st.secrets["telegram"]["bot_token"]
-        TELEGRAM_CHAT_ID = st.secrets["telegram"]["chat_id"]
-    except:
-        return False
-    
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
-        "parse_mode": "HTML"
-    }
-    try:
-        response = requests.post(url, json=payload)
-        return response.status_code == 200
-    except:
-        return False
+st.sidebar.image("assets/logo.jpg", use_container_width=True)
+st.sidebar.markdown("""
+<div style="text-align: center; padding: 0.5rem 0 1.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;">
+    <div style="color: white; font-weight: 800; font-size: 1.4rem; margin: 0; letter-spacing: 1px;">
+        JAY <span style="color: #d4af37;">PHOTO</span>
+    </div>
+    <div style="color: #adb5bd; font-size: 0.7rem; font-weight: 400; letter-spacing: 3px; margin-top: 2px;">
+        ART
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-# ===== ફોટા ડાઉનલોડની ફિક્સ્ડ કિંમત =====
-PHOTO_PRICE = 10
-
-# ============================================================
-# HELPER FUNCTIONS
-# ============================================================
-def parse_embedding(embedding_data):
-    if embedding_data is None:
-        return None
-    if isinstance(embedding_data, str):
-        try:
-            embedding_data = json.loads(embedding_data)
-        except:
-            return None
-    if isinstance(embedding_data, list):
-        return np.array(embedding_data, dtype=np.float32)
-    if isinstance(embedding_data, np.ndarray):
-        return embedding_data
-    return None
-
-def get_local_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-    except:
-        return "127.0.0.1"
-
-def get_events_list():
-    if not os.path.exists("events"):
-        return []
-    return [d for d in os.listdir("events") if os.path.isdir(os.path.join("events", d))]
-
-def load_event_data(event_name):
-    path = os.path.join("events", event_name, "data.json")
-    if not os.path.exists(path):
-        return {"password": "", "faces": []}
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    if isinstance(data, list):
-        data = {"password": "", "faces": data}
-    for face in data.get("faces", []):
-        if "embedding" in face and isinstance(face["embedding"], str):
-            try:
-                face["embedding"] = json.loads(face["embedding"])
-            except:
-                face["embedding"] = []
-    return data
-
-def save_event_data(event_name, data):
-    os.makedirs(os.path.join("events", event_name), exist_ok=True)
-    path = os.path.join("events", event_name, "data.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-
-@st.cache_resource
-def load_insightface():
-    app = FaceAnalysis(name='buffalo_l', root='insightface_models')
-    app.prepare(ctx_id=0, det_size=(640, 640))
-    return app
-
-@st.cache_resource
-def load_event_faiss_index(event_name):
-    data = load_event_data(event_name)
-    if not data:
-        return None, None
-    valid_faces = []
-    for item in data.get("faces", []):
-        emb = parse_embedding(item.get("embedding"))
-        if emb is not None:
-            valid_faces.append(item)
-    if not valid_faces:
-        return None, None
-    embeddings = np.array([item["embedding"] for item in valid_faces], dtype=np.float32)
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dim)
-    index.add(embeddings)
-    return index, valid_faces
-
-app = load_insightface()
+option = st.sidebar.selectbox(
+    "📌 પેજ પસંદ કરો",
+    ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 Analytics", "📊 બેન્ચમાર્ક"],
+    format_func=lambda x: x
+)
 
 # ============================================================
 # PASSWORD PROTECTION
@@ -389,31 +397,84 @@ def check_password():
             return False
     return False
 
-# ============================================================
-# 🧭 SIDEBAR - મોટો લોગો + JAY PHOTO ART
-# ============================================================
-st.sidebar.image("assets/logo.jpg", use_container_width=True)
-
-st.sidebar.markdown("""
-<div style="text-align: center; padding: 0.5rem 0 1.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;">
-    <div style="color: white; font-weight: 800; font-size: 1.4rem; margin: 0; letter-spacing: 1px;">
-        JAY <span style="color: #d4af37;">PHOTO</span>
-    </div>
-    <div style="color: #adb5bd; font-size: 0.7rem; font-weight: 400; letter-spacing: 3px; margin-top: 2px;">
-        ART
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-option = st.sidebar.selectbox(
-    "📌 પેજ પસંદ કરો",
-    ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 Analytics", "📊 બેન્ચમાર્ક"],
-    format_func=lambda x: x
-)
-
 if option in ["📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 Analytics"]:
     if not check_password():
         st.stop()
+
+# ============================================================
+# TELEGRAM BOT
+# ============================================================
+def send_telegram_message(message):
+    try:
+        TELEGRAM_BOT_TOKEN = st.secrets["telegram"]["bot_token"]
+        TELEGRAM_CHAT_ID = st.secrets["telegram"]["chat_id"]
+    except:
+        return False
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"}
+    try:
+        response = requests.post(url, json=payload)
+        return response.status_code == 200
+    except:
+        return False
+
+# ============================================================
+# INSIGHTFACE & FAISS
+# ============================================================
+@st.cache_resource
+def load_insightface():
+    app = FaceAnalysis(name='buffalo_l', root='insightface_models')
+    app.prepare(ctx_id=0, det_size=(640, 640))
+    return app
+
+@st.cache_resource
+def load_event_faiss_index(event_name):
+    data = load_event_data(event_name)
+    if not data or not data.get("faces"):
+        return None, None
+    valid_faces = []
+    for item in data.get("faces", []):
+        emb = parse_embedding(item.get("embedding"))
+        if emb is not None:
+            valid_faces.append(item)
+    if not valid_faces:
+        return None, None
+    embeddings = np.array([item["embedding"] for item in valid_faces], dtype=np.float32)
+    dim = embeddings.shape[1]
+    index = faiss.IndexFlatIP(dim)
+    index.add(embeddings)
+    return index, valid_faces
+
+def parse_embedding(embedding_data):
+    if embedding_data is None:
+        return None
+    if isinstance(embedding_data, str):
+        try:
+            return np.array(json.loads(embedding_data), dtype=np.float32)
+        except:
+            return None
+    if isinstance(embedding_data, list):
+        return np.array(embedding_data, dtype=np.float32)
+    if isinstance(embedding_data, np.ndarray):
+        return embedding_data
+    return None
+
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except:
+        return "127.0.0.1"
+
+app = load_insightface()
+
+# ============================================================
+# CONSTANTS
+# ============================================================
+PHOTO_PRICE = 10
 
 # ============================================================
 # PAGE 1: MANAGE EVENTS
@@ -431,16 +492,15 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         event_password = st.text_input("🔒 ઇવેન્ટ પાસવર્ડ (ગ્રાહકો માટે)", type="password")
         if st.button("📌 ઇવેન્ટ બનાવો"):
             if new_event.strip() and event_password.strip():
-                event_folder = os.path.join("events", new_event.strip())
-                if os.path.exists(event_folder):
-                    st.warning("⚠️ આ નામની ઇવેન્ટ પહેલેથી છે!")
-                else:
-                    os.makedirs(event_folder)
-                    os.makedirs(os.path.join(event_folder, "images"))
+                # Drive પર ફોલ્ડર બનાવો
+                folder_id = get_drive_folder_id(new_event.strip())
+                if folder_id:
                     event_data = {"password": event_password, "faces": []}
                     save_event_data(new_event.strip(), event_data)
-                    st.success(f"✅ '{new_event}' ઇવેન્ટ સફળતાપૂર્વક બની!")
+                    st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
                     st.rerun()
+                else:
+                    st.error("❌ Drive પર ઇવેન્ટ બનાવતી વખતે ભૂલ!")
             else:
                 st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
 
@@ -461,7 +521,6 @@ if option == "📂 ઇવેન્ટ મેનેજ":
             
             if st.button("🔍 ચહેરા શોધો") and uploaded_files:
                 os.makedirs("temp_crops", exist_ok=True)
-                os.makedirs(os.path.join("events", selected_event, "images"), exist_ok=True)
                 
                 if 'pending_faces' not in st.session_state:
                     st.session_state.pending_faces = []
@@ -471,6 +530,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                 progress_bar = st.progress(0)
                 status_text = st.empty()
                 total_files = len(uploaded_files)
+                folder_id = get_drive_folder_id(selected_event)
                 
                 for i, file in enumerate(uploaded_files):
                     status_text.text(f"⏳ {file.name} પર કામ ચાલુ છે...")
@@ -486,10 +546,14 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                         st.warning(f"⚠️ {file.name} માં કોઈ ચહેરો નથી.")
                         continue
                     
+                    # ===== 🔥 Drive પર ફોટો અપલોડ કરો =====
                     file_ext = os.path.splitext(file.name)[1]
                     unique_name = f"{hashlib.md5(file.name.encode() + str(datetime.datetime.now()).encode()).hexdigest()[:10]}{file_ext}"
-                    dest_path = os.path.join("events", selected_event, "images", unique_name)
-                    shutil.copy(tmp_path, dest_path)
+                    drive_file_id = upload_to_drive(tmp_path, folder_id)
+                    
+                    if drive_file_id is None:
+                        st.error(f"❌ {file.name} Drive પર અપલોડ થયો નહીં!")
+                        continue
                     
                     for j, face in enumerate(faces):
                         bbox = face.bbox.astype(int)
@@ -529,6 +593,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                             "crop_path": crop_path,
                             "embedding": embedding.tolist(),
                             "original_filename": unique_name,
+                            "drive_file_id": drive_file_id,
                             "label": suggested_label
                         })
                     
@@ -598,6 +663,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                         if lbl != "SKIP" and lbl != "":
                             existing_faces.append({
                                 "filename": face_data["original_filename"],
+                                "drive_file_id": face_data["drive_file_id"],
                                 "person_label": lbl,
                                 "embedding": face_data["embedding"]
                             })
@@ -612,7 +678,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                             pass
                     st.session_state.pending_faces = []
                     st.cache_resource.clear()
-                    st.success(f"✅ {count} ચહેરા '{selected_event}' માં સેવ થયા!")
+                    st.success(f"✅ {count} ચહેરા '{selected_event}' માં Drive પર સેવ થયા!")
                     st.rerun()
             
             st.divider()
@@ -627,24 +693,28 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                         idx = i + j
                         if idx < len(faces_list):
                             item = faces_list[idx]
-                            img_path = os.path.join("events", selected_event, "images", item["filename"])
-                            with col:
-                                try:
-                                    st.image(img_path, caption=f"લેબલ: {item['person_label']}", width=150)
-                                except:
-                                    st.write(f"❌ {item['filename']}")
+                            # Drive પરથી ફોટો બતાવો (HTML img tag with drive file id)
+                            file_id = item.get("drive_file_id")
+                            if file_id:
+                                img_url = f"https://drive.google.com/uc?export=view&id={file_id}"
+                                with col:
+                                    st.image(img_url, caption=f"લેબલ: {item['person_label']}", width=150)
+                            else:
+                                st.write(f"❌ {item['filename']} (Drive ID missing)")
             else:
                 st.info("ℹ️ હજુ સુધી કોઈ ફોટો લેબલ થયો નથી.")
             
             # ===== DELETE EVENT =====
             st.divider()
             st.markdown("### 🗑️ ઇવેન્ટ કાઢી નાખો")
-            st.warning(f"⚠️ આ ઇવેન્ટ ('{selected_event}') અને તેના બધા ફોટા કાયમ માટે ડિલીટ થઈ જશે!")
+            st.warning(f"⚠️ આ ઇવેન્ટ ('{selected_event}') અને તેના બધા Drive ફોટા કાયમ માટે ડિલીટ થઈ જશે!")
             if st.button(f"🗑️ '{selected_event}' ઇવેન્ટ કાઢી નાખો", type="primary"):
-                event_folder = os.path.join("events", selected_event)
                 try:
-                    shutil.rmtree(event_folder)
-                    st.success(f"✅ '{selected_event}' ઇવેન્ટ સફળતાપૂર્વક ડિલીટ થઈ ગઈ!")
+                    drive_service = get_drive_service()
+                    folder_id = get_drive_folder_id(selected_event)
+                    if folder_id:
+                        drive_service.files().delete(fileId=folder_id).execute()
+                    st.success(f"✅ '{selected_event}' ઇવેન્ટ Drive પરથી ડિલીટ થઈ ગઈ!")
                     st.session_state.pending_faces = []
                     st.rerun()
                 except Exception as e:
@@ -800,10 +870,7 @@ elif option == "🔍 ફોટો શોધો":
                                         matched_persons.add(match['person'])
                                 
                                 if matched_persons:
-                                    # ===== 📊 LOG: ગ્રાહકે શોધ કરી =====
-                                    log_activity(event_name, "search", ", ".join(matched_persons))
-                                    
-                                    # ===== 🔔 TELEGRAM =====
+                                    # ===== 🔔 TELEGRAM NOTIFICATION =====
                                     send_telegram_message(
                                         f"✅ <b>નવો ગ્રાહક!</b>\n"
                                         f"📸 ઇવેન્ટ: {event_name}\n"
@@ -812,8 +879,9 @@ elif option == "🔍 ફોટો શોધો":
                                     )
                                     
                                     # ============================================================
-                                    # 🛒 CART SYSTEM
+                                    # 🛒 CART SYSTEM - ફોટા સિલેક્ટ કરવા અને કુલ કિંમત બતાવવા
                                     # ============================================================
+                                    
                                     for person in matched_persons:
                                         st.markdown(f"**👤 વ્યક્તિ: {person}**")
                                         
@@ -821,18 +889,27 @@ elif option == "🔍 ફોટો શોધો":
                                         
                                         if person_photos:
                                             for idx, item in enumerate(person_photos):
-                                                img_path = os.path.join("events", event_name, "images", item["filename"])
-                                                
+                                                # 4 કોલમની ગ્રીડ (દર 4 ફોટા પછી નવી લાઈન)
                                                 if idx % 4 == 0:
                                                     cols = st.columns(4)
                                                 
-                                                col = cols[idx % 4]
-                                                with col:
+                                                col = cols[idx % 4]   # <--- અહીં col મળે છે
+                                                
+                                                with col:   # <--- આ લાઈન અહીં આવે છે
                                                     try:
-                                                        st.image(img_path, width=150)
+                                                        # ===== Drive પરથી ઇમેજ બતાવો =====
+                                                        file_id = item.get("drive_file_id")
+                                                        if file_id:
+                                                            img_url = f"https://drive.google.com/uc?export=view&id={file_id}"
+                                                            st.image(img_url, width=150)
+                                                        else:
+                                                            # Fallback: જો Drive ID ના મળે તો લોકલ પાથ વાપરો
+                                                            img_path = os.path.join("events", event_name, "images", item["filename"])
+                                                            st.image(img_path, width=150)
                                                     except:
-                                                        st.write(f"📁 {item['filename']}")
+                                                        st.write(f"📁 {item.get('filename', 'Unknown')}")
                                                     
+                                                    # ===== ચેકબોક્સ (કાર્ટ માટે) =====
                                                     price = PHOTO_PRICE
                                                     cart_key = f"cart_{person}_{idx}"
                                                     if price == 0:
@@ -843,11 +920,13 @@ elif option == "🔍 ફોટો શોધો":
                                                     if selected:
                                                         if "cart" not in st.session_state:
                                                             st.session_state.cart = []
+                                                        # Drive URL અથવા લોકલ પાથ સ્ટોર કરો
                                                         cart_item = {
                                                             "person": person,
                                                             "filename": item["filename"],
                                                             "price": price,
-                                                            "img_path": img_path
+                                                            "img_path": img_path,   # ફોટો બતાવવા માટે
+                                                            "drive_file_id": item.get("drive_file_id")
                                                         }
                                                         if cart_item not in st.session_state.cart:
                                                             st.session_state.cart.append(cart_item)
@@ -855,10 +934,11 @@ elif option == "🔍 ફોટો શોધો":
                                                         if "cart" in st.session_state:
                                                             st.session_state.cart = [c for c in st.session_state.cart if not (c["person"] == person and c["filename"] == item["filename"])]
                                             
+                                            # ===== "આ વ્યક્તિના બધા ફોટા કાર્ટમાં ઉમેરો" =====
                                             if st.button(f"➕ {person} ના બધા ફોટા કાર્ટમાં ઉમેરો", key=f"add_all_{person}"):
                                                 for item in person_photos:
                                                     img_path = os.path.join("events", event_name, "images", item["filename"])
-                                                    price = PHOTO_PRICE
+                                                    price = PHOTO_PRICE  # <--- ફિક્સ્ડ કિંમત
                                                     cart_item = {
                                                         "person": person,
                                                         "filename": item["filename"],
@@ -896,7 +976,9 @@ elif option == "🔍 ફોટો શોધો":
                                             st.session_state.payment_done = False
                                             st.rerun()
                                         
-                                        # ===== CHECKOUT =====
+                                        # ============================================================
+                                        # 🧾 CHECKOUT (UPI PAYMENT)
+                                        # ============================================================
                                         if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
                                             MY_UPI_ID = "dineshmakwna123@oksbi"
                                             MY_NAME = "Jay Photography"
@@ -913,17 +995,14 @@ elif option == "🔍 ફોટો શોધો":
                                                 "📱 Generic UPI": f"upi://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR&tn={encoded_note}&tr={order_id}"
                                             }
                                             
+                                                                                        # ===== UPI લોગો સાથે લિંક બટનો =====
                                             st.sidebar.markdown("### 💳 તમારી UPI એપ પસંદ કરો:")
                                             
-                                            col1, col2 = st.sidebar.columns(2)
-                                            
-                                            with col1:
-                                                st.sidebar.link_button("🟢 Google Pay", upi_links["📱 Google Pay"], use_container_width=True)
-                                                st.sidebar.link_button("🔵 Paytm", upi_links["📱 Paytm"], use_container_width=True)
-                                            
-                                            with col2:
-                                                st.sidebar.link_button("🟠 PhonePe", upi_links["📱 PhonePe"], use_container_width=True)
-                                                st.sidebar.link_button("🟣 BHIM", upi_links["📱 BHIM"], use_container_width=True)
+                                            st.sidebar.link_button("🟢 Google Pay", upi_links["📱 Google Pay"], use_container_width=True)
+                                            st.sidebar.link_button("🟠 PhonePe", upi_links["📱 PhonePe"], use_container_width=True)
+                                            st.sidebar.link_button("🔵 Paytm", upi_links["📱 Paytm"], use_container_width=True)
+                                            st.sidebar.link_button("🟣 BHIM", upi_links["📱 BHIM"], use_container_width=True)
+                                            st.sidebar.link_button("📱 અન્ય UPI એપ", upi_links["📱 Generic UPI"], use_container_width=True)
                                             
                                             st.sidebar.markdown("---")
                                             if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!", use_container_width=True):
@@ -931,9 +1010,6 @@ elif option == "🔍 ફોટો શોધો":
                                                 for item in cart:
                                                     unique_persons.add(item['person'])
                                                 persons_text = ", ".join(unique_persons)
-                                                
-                                                # ===== 📊 LOG: પેમેન્ટ =====
-                                                log_activity(event_name, "payment", persons_text, total_price)
                                                 
                                                 send_telegram_message(
                                                     f"💰 <b>પેમેન્ટ મળ્યું!</b>\n"
@@ -945,7 +1021,9 @@ elif option == "🔍 ફોટો શોધો":
                                                 st.session_state.payment_done = True
                                                 st.rerun()
                                         
-                                        # ===== DOWNLOAD + SHARING =====
+                                        # ============================================================
+                                        # 🔓 PAYMENT DONE → DOWNLOAD + SHARING
+                                        # ============================================================
                                         if st.session_state.get("payment_done", False):
                                             st.sidebar.markdown("---")
                                             st.sidebar.markdown("## 📥 તમારા ફોટા ડાઉનલોડ કરો")
@@ -1056,57 +1134,7 @@ elif option == "📱 QR કોડ બનાવો":
                 st.write("3. તેઓ સેલ્ફી લઈને તેમના ફોટા જોશે.")
 
 # ============================================================
-# PAGE 4: ANALYTICS
-# ============================================================
-elif option == "📊 Analytics":
-    st.header("📊 એનાલિટિક્સ - ઇવેન્ટ આંકડા")
-    
-    if os.path.exists("analytics.csv"):
-        df = pd.read_csv("analytics.csv")
-        
-        st.subheader("📊 સારાંશ")
-        col1, col2, col3 = st.columns(3)
-        total_events = df['Event'].nunique()
-        total_customers = len(df[df['Activity'] == 'search'])
-        total_payments = len(df[df['Activity'] == 'payment'])
-        col1.metric("📸 કુલ ઇવેન્ટ્સ", total_events)
-        col2.metric("👤 કુલ ગ્રાહકો", total_customers)
-        col3.metric("💳 કુલ પેમેન્ટ્સ", total_payments)
-        
-        # ઇવેન્ટ-વાઈઝ ગ્રાહકો
-        st.subheader("📸 ઇવેન્ટ-વાઈઝ ગ્રાહકો")
-        event_counts = df[df['Activity'] == 'search']['Event'].value_counts()
-        if len(event_counts) > 0:
-            st.bar_chart(event_counts)
-        else:
-            st.info("ℹ️ હજુ સુધી કોઈ ગ્રાહકે શોધ કરી નથી.")
-        
-        # પેમેન્ટ આંકડા
-        st.subheader("💰 ઇવેન્ટ-વાઈઝ પેમેન્ટ")
-        payment_data = df[df['Activity'] == 'payment']
-        if len(payment_data) > 0:
-            payment_counts = payment_data['Event'].value_counts()
-            st.bar_chart(payment_counts)
-        else:
-            st.info("ℹ️ હજુ સુધી કોઈ પેમેન્ટ નથી.")
-        
-        # તાજેતરની પ્રવૃત્તિઓ
-        st.subheader("🕒 તાજેતરની ૧૦ પ્રવૃત્તિઓ")
-        st.dataframe(df.tail(10))
-        
-        # CSV ડાઉનલોડ
-        csv_data = df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Analytics CSV ડાઉનલોડ કરો",
-            data=csv_data,
-            file_name="analytics.csv",
-            mime="text/csv"
-        )
-    else:
-        st.info("ℹ️ હજુ સુધી કોઈ ડેટા નથી. ગ્રાહકો એપ વાપરશે ત્યારે આપમેળે લોગ થશે.")
-
-# ============================================================
-# PAGE 5: BENCHMARK
+# PAGE 4: BENCHMARK
 # ============================================================
 else:
     st.header("📊 બેન્ચમાર્ક પરિણામો")
