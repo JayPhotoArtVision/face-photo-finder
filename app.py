@@ -10,13 +10,14 @@ import hashlib
 import datetime
 import tempfile
 import faiss
-import webbrowser          # <--- UPI લિંક ખોલવા માટે
-import requests            # <--- Telegram મેસેજ મોકલવા માટે
+import webbrowser
+import requests
 import urllib.parse
+import csv
+import pandas as pd
 from insightface.app import FaceAnalysis
 from face_search import find_best_global_assignment
 from PIL import Image
-import pandas as pd
 
 # ============================================================
 # ENVIRONMENT VARIABLE (OpenCV માટે)
@@ -31,6 +32,30 @@ st.set_page_config(
     page_icon="📸",
     layout="wide"
 )
+
+# ============================================================
+# ANALYTICS - LOG ACTIVITY
+# ============================================================
+def log_activity(event_name, activity_type, person_label="", amount=0):
+    """ગ્રાહકની પ્રવૃત્તિ CSV માં લોગ કરો"""
+    log_file = "analytics.csv"
+    file_exists = os.path.exists(log_file)
+    
+    try:
+        with open(log_file, "a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(["Timestamp", "Event", "Activity", "Person", "Amount"])
+            writer.writerow([
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                event_name,
+                activity_type,  # "search", "payment"
+                person_label,
+                amount
+            ])
+        return True
+    except:
+        return False
 
 # ============================================================
 # CUSTOM CSS - પ્રોફેશનલ ડિઝાઇન + મોબાઇલ રિસ્પોન્સિવ
@@ -165,9 +190,6 @@ st.markdown("""
         color: #d4af37;
     }
     
-    /* ================================================================
-       📱 MOBILE RESPONSIVE (ફક્ત નાની સ્ક્રીન માટે)
-       ================================================================ */
     @media (max-width: 768px) {
         .logo-area img {
             height: 40px !important;
@@ -228,7 +250,7 @@ col1, col2 = st.columns([1, 5])
 
 with col1:
     try:
-        st.image("assets/logo.jpg", width=150)
+        st.image("assets/logo.jpg", width=100)
     except:
         st.markdown("## 📸")
 
@@ -245,15 +267,13 @@ with col2:
     """, unsafe_allow_html=True)
 
 # ============================================================
-# TELEGRAM BOT (Secrets માંથી Token અને Chat ID વાંચો)
+# TELEGRAM BOT (Secrets માંથી)
 # ============================================================
 def send_telegram_message(message):
-    """ટેલિગ્રામ પર મેસેજ મોકલો"""
     try:
         TELEGRAM_BOT_TOKEN = st.secrets["telegram"]["bot_token"]
         TELEGRAM_CHAT_ID = st.secrets["telegram"]["chat_id"]
     except:
-        print("⚠️ Telegram secrets not configured!")
         return False
     
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -269,7 +289,7 @@ def send_telegram_message(message):
         return False
 
 # ===== ફોટા ડાઉનલોડની ફિક્સ્ડ કિંમત =====
-PHOTO_PRICE = 10   # 0 = FREE, 10 = ₹10, 25 = ₹25...
+PHOTO_PRICE = 10
 
 # ============================================================
 # HELPER FUNCTIONS
@@ -387,9 +407,13 @@ st.sidebar.markdown("""
 
 option = st.sidebar.selectbox(
     "📌 પેજ પસંદ કરો",
-    ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 બેન્ચમાર્ક"],
+    ["🔍 ફોટો શોધો", "📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 Analytics", "📊 બેન્ચમાર્ક"],
     format_func=lambda x: x
 )
+
+if option in ["📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 Analytics"]:
+    if not check_password():
+        st.stop()
 
 # ============================================================
 # PAGE 1: MANAGE EVENTS
@@ -513,14 +537,13 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                 status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
                 st.rerun()
             
-            # ---------- SMART GROUP LABELING SECTION ----------
+            # ---------- SMART GROUP LABELING ----------
             if 'pending_faces' in st.session_state and st.session_state.pending_faces:
                 st.subheader(f"🏷️ {len(st.session_state.pending_faces)} ચહેરાઓને સ્માર્ટ ગ્રૂપમાં ગોઠવો")
-                st.caption("🔍 સરખા દેખાતા ચહેરાઓ આપમેળે એક ગ્રૂપમાં ગોઠવાઈ ગયા છે. દરેક ગ્રૂપને એક નામ આપો.")
+                st.caption("🔍 સરખા દેખાતા ચહેરાઓ આપમેળે એક ગ્રૂપમાં ગોઠવાઈ ગયા છે.")
                 
                 pending = st.session_state.pending_faces
                 embeddings = np.array([face["embedding"] for face in pending], dtype=np.float32)
-                
                 norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
                 norms[norms == 0] = 1
                 embeddings_norm = embeddings / norms
@@ -543,7 +566,6 @@ if option == "📂 ઇવેન્ટ મેનેજ":
                 
                 for group_idx, cluster in enumerate(clusters):
                     st.markdown(f"### 🎯 ગ્રૂપ {group_idx + 1} (કુલ {len(cluster)} ચહેરા)")
-                    
                     cols = st.columns(min(4, len(cluster)))
                     for col_idx, face_idx in enumerate(cluster):
                         col = cols[col_idx % 4]
@@ -614,13 +636,10 @@ if option == "📂 ઇવેન્ટ મેનેજ":
             else:
                 st.info("ℹ️ હજુ સુધી કોઈ ફોટો લેબલ થયો નથી.")
             
-            # ============================================================
-            # 🗑️ DELETE EVENT (ઇવેન્ટ કાઢી નાખો)
-            # ============================================================
+            # ===== DELETE EVENT =====
             st.divider()
             st.markdown("### 🗑️ ઇવેન્ટ કાઢી નાખો")
             st.warning(f"⚠️ આ ઇવેન્ટ ('{selected_event}') અને તેના બધા ફોટા કાયમ માટે ડિલીટ થઈ જશે!")
-            
             if st.button(f"🗑️ '{selected_event}' ઇવેન્ટ કાઢી નાખો", type="primary"):
                 event_folder = os.path.join("events", selected_event)
                 try:
@@ -781,7 +800,10 @@ elif option == "🔍 ફોટો શોધો":
                                         matched_persons.add(match['person'])
                                 
                                 if matched_persons:
-                                    # ===== 🔔 TELEGRAM NOTIFICATION =====
+                                    # ===== 📊 LOG: ગ્રાહકે શોધ કરી =====
+                                    log_activity(event_name, "search", ", ".join(matched_persons))
+                                    
+                                    # ===== 🔔 TELEGRAM =====
                                     send_telegram_message(
                                         f"✅ <b>નવો ગ્રાહક!</b>\n"
                                         f"📸 ઇવેન્ટ: {event_name}\n"
@@ -790,9 +812,8 @@ elif option == "🔍 ફોટો શોધો":
                                     )
                                     
                                     # ============================================================
-                                    # 🛒 CART SYSTEM - ફોટા સિલેક્ટ કરવા અને કુલ કિંમત બતાવવા
+                                    # 🛒 CART SYSTEM
                                     # ============================================================
-                                    
                                     for person in matched_persons:
                                         st.markdown(f"**👤 વ્યક્તિ: {person}**")
                                         
@@ -812,8 +833,7 @@ elif option == "🔍 ફોટો શોધો":
                                                     except:
                                                         st.write(f"📁 {item['filename']}")
                                                     
-                                                    price = PHOTO_PRICE  # <--- ફિક્સ્ડ કિંમત
-                                                    
+                                                    price = PHOTO_PRICE
                                                     cart_key = f"cart_{person}_{idx}"
                                                     if price == 0:
                                                         selected = st.checkbox(f"🆓 FREE", key=cart_key, value=False)
@@ -835,11 +855,10 @@ elif option == "🔍 ફોટો શોધો":
                                                         if "cart" in st.session_state:
                                                             st.session_state.cart = [c for c in st.session_state.cart if not (c["person"] == person and c["filename"] == item["filename"])]
                                             
-                                            # ===== "આ વ્યક્તિના બધા ફોટા કાર્ટમાં ઉમેરો" =====
                                             if st.button(f"➕ {person} ના બધા ફોટા કાર્ટમાં ઉમેરો", key=f"add_all_{person}"):
                                                 for item in person_photos:
                                                     img_path = os.path.join("events", event_name, "images", item["filename"])
-                                                    price = PHOTO_PRICE  # <--- ફિક્સ્ડ કિંમત
+                                                    price = PHOTO_PRICE
                                                     cart_item = {
                                                         "person": person,
                                                         "filename": item["filename"],
@@ -877,9 +896,7 @@ elif option == "🔍 ફોટો શોધો":
                                             st.session_state.payment_done = False
                                             st.rerun()
                                         
-                                        # ============================================================
-                                        # 🧾 CHECKOUT (UPI PAYMENT)
-                                        # ============================================================
+                                        # ===== CHECKOUT =====
                                         if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
                                             MY_UPI_ID = "dineshmakwna123@oksbi"
                                             MY_NAME = "Jay Photography"
@@ -896,14 +913,17 @@ elif option == "🔍 ફોટો શોધો":
                                                 "📱 Generic UPI": f"upi://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR&tn={encoded_note}&tr={order_id}"
                                             }
                                             
-                                                                                        # ===== UPI લોગો સાથે લિંક બટનો =====
                                             st.sidebar.markdown("### 💳 તમારી UPI એપ પસંદ કરો:")
                                             
-                                            st.sidebar.link_button("🟢 Google Pay", upi_links["📱 Google Pay"], use_container_width=True)
-                                            st.sidebar.link_button("🟠 PhonePe", upi_links["📱 PhonePe"], use_container_width=True)
-                                            st.sidebar.link_button("🔵 Paytm", upi_links["📱 Paytm"], use_container_width=True)
-                                            st.sidebar.link_button("🟣 BHIM", upi_links["📱 BHIM"], use_container_width=True)
-                                            st.sidebar.link_button("📱 અન્ય UPI એપ", upi_links["📱 Generic UPI"], use_container_width=True)
+                                            col1, col2 = st.sidebar.columns(2)
+                                            
+                                            with col1:
+                                                st.sidebar.link_button("🟢 Google Pay", upi_links["📱 Google Pay"], use_container_width=True)
+                                                st.sidebar.link_button("🔵 Paytm", upi_links["📱 Paytm"], use_container_width=True)
+                                            
+                                            with col2:
+                                                st.sidebar.link_button("🟠 PhonePe", upi_links["📱 PhonePe"], use_container_width=True)
+                                                st.sidebar.link_button("🟣 BHIM", upi_links["📱 BHIM"], use_container_width=True)
                                             
                                             st.sidebar.markdown("---")
                                             if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!", use_container_width=True):
@@ -911,6 +931,9 @@ elif option == "🔍 ફોટો શોધો":
                                                 for item in cart:
                                                     unique_persons.add(item['person'])
                                                 persons_text = ", ".join(unique_persons)
+                                                
+                                                # ===== 📊 LOG: પેમેન્ટ =====
+                                                log_activity(event_name, "payment", persons_text, total_price)
                                                 
                                                 send_telegram_message(
                                                     f"💰 <b>પેમેન્ટ મળ્યું!</b>\n"
@@ -922,9 +945,7 @@ elif option == "🔍 ફોટો શોધો":
                                                 st.session_state.payment_done = True
                                                 st.rerun()
                                         
-                                        # ============================================================
-                                        # 🔓 PAYMENT DONE → DOWNLOAD + SHARING
-                                        # ============================================================
+                                        # ===== DOWNLOAD + SHARING =====
                                         if st.session_state.get("payment_done", False):
                                             st.sidebar.markdown("---")
                                             st.sidebar.markdown("## 📥 તમારા ફોટા ડાઉનલોડ કરો")
@@ -1035,7 +1056,57 @@ elif option == "📱 QR કોડ બનાવો":
                 st.write("3. તેઓ સેલ્ફી લઈને તેમના ફોટા જોશે.")
 
 # ============================================================
-# PAGE 4: BENCHMARK
+# PAGE 4: ANALYTICS
+# ============================================================
+elif option == "📊 Analytics":
+    st.header("📊 એનાલિટિક્સ - ઇવેન્ટ આંકડા")
+    
+    if os.path.exists("analytics.csv"):
+        df = pd.read_csv("analytics.csv")
+        
+        st.subheader("📊 સારાંશ")
+        col1, col2, col3 = st.columns(3)
+        total_events = df['Event'].nunique()
+        total_customers = len(df[df['Activity'] == 'search'])
+        total_payments = len(df[df['Activity'] == 'payment'])
+        col1.metric("📸 કુલ ઇવેન્ટ્સ", total_events)
+        col2.metric("👤 કુલ ગ્રાહકો", total_customers)
+        col3.metric("💳 કુલ પેમેન્ટ્સ", total_payments)
+        
+        # ઇવેન્ટ-વાઈઝ ગ્રાહકો
+        st.subheader("📸 ઇવેન્ટ-વાઈઝ ગ્રાહકો")
+        event_counts = df[df['Activity'] == 'search']['Event'].value_counts()
+        if len(event_counts) > 0:
+            st.bar_chart(event_counts)
+        else:
+            st.info("ℹ️ હજુ સુધી કોઈ ગ્રાહકે શોધ કરી નથી.")
+        
+        # પેમેન્ટ આંકડા
+        st.subheader("💰 ઇવેન્ટ-વાઈઝ પેમેન્ટ")
+        payment_data = df[df['Activity'] == 'payment']
+        if len(payment_data) > 0:
+            payment_counts = payment_data['Event'].value_counts()
+            st.bar_chart(payment_counts)
+        else:
+            st.info("ℹ️ હજુ સુધી કોઈ પેમેન્ટ નથી.")
+        
+        # તાજેતરની પ્રવૃત્તિઓ
+        st.subheader("🕒 તાજેતરની ૧૦ પ્રવૃત્તિઓ")
+        st.dataframe(df.tail(10))
+        
+        # CSV ડાઉનલોડ
+        csv_data = df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Analytics CSV ડાઉનલોડ કરો",
+            data=csv_data,
+            file_name="analytics.csv",
+            mime="text/csv"
+        )
+    else:
+        st.info("ℹ️ હજુ સુધી કોઈ ડેટા નથી. ગ્રાહકો એપ વાપરશે ત્યારે આપમેળે લોગ થશે.")
+
+# ============================================================
+# PAGE 5: BENCHMARK
 # ============================================================
 else:
     st.header("📊 બેન્ચમાર્ક પરિણામો")
