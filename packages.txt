@@ -1,0 +1,3 @@
+libgl1-mesa-glx
+libffi-dev
+libglib2.0-0
