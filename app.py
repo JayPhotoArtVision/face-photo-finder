@@ -205,65 +205,65 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-    /* ================================================================
-       📱 MOBILE RESPONSIVE (ફક્ત નાની સ્ક્રીન માટે)
-       ================================================================ */
-    @media (max-width: 768px) {
-        /* ===== હેડર ===== */
-        .logo-area img {
-            height: 40px !important;
-        }
-        .brand-text h1 {
-            font-size: 1.5rem !important;
-        }
-        .brand-text .tagline {
-            font-size: 0.7rem !important;
-        }
-        
-        /* ===== કાર્ડ્સ ===== */
-        .card {
-            padding: 1rem !important;
-            border-radius: 16px !important;
-        }
-        .card-title {
-            font-size: 1.1rem !important;
-        }
-        .card-desc {
-            font-size: 0.85rem !important;
-        }
-        
-        /* ===== બટનો ===== */
-        .stButton button {
-            font-size: 0.8rem !important;
-            padding: 0.4rem 1.2rem !important;
-            width: 100% !important;
-        }
-        
-        /* ===== ઇમેજ ગ્રીડ ===== */
-        .stImage {
-            width: 100% !important;
-        }
-        
-        /* ===== સાઇડબાર ===== */
-        section[data-testid="stSidebar"] {
-            padding: 0.5rem !important;
-        }
-        .sidebar-logo img {
-            max-width: 120px !important;
-        }
-        .sidebar-logo .brand-name {
-            font-size: 1rem !important;
-        }
-        
-        /* ===== કાર્ટ ===== */
-        .stSidebar .stColumns {
-            gap: 0.3rem !important;
-        }
-        .stSidebar .stButton button {
-            font-size: 0.7rem !important;
-            padding: 0.3rem 0.6rem !important;
-        }
+/* ================================================================
+    📱 MOBILE RESPONSIVE (ફક્ત નાની સ્ક્રીન માટે)
+    ================================================================ */
+ @media (max-width: 768px) {
+    /* ===== હેડર ===== */
+    .logo-area img {
+         height: 40px !important;
     }
+     .brand-text h1 {
+        font-size: 1.5rem !important;
+    }
+     .brand-text .tagline {
+        font-size: 0.7rem !important;
+    }
+        
+    /* ===== કાર્ડ્સ ===== */
+     .card {
+        padding: 1rem !important;
+        border-radius: 16px !important;
+    }
+     .card-title {
+        font-size: 1.1rem !important;
+    }
+     .card-desc {
+        font-size: 0.85rem !important;
+    }
+        
+    /* ===== બટનો ===== */
+     .stButton button {
+        font-size: 0.8rem !important;
+        padding: 0.4rem 1.2rem !important;
+         width: 100% !important;
+    }
+        
+    /* ===== ઇમેજ ગ્રીડ ===== */
+     .stImage {
+        width: 100% !important;
+    }
+        
+    /* ===== સાઇડબાર ===== */
+    section[data-testid="stSidebar"] {
+        padding: 0.5rem !important;
+    }
+    .sidebar-logo img {
+        max-width: 120px !important;
+    }
+    .sidebar-logo .brand-name {
+        font-size: 1rem !important;
+    }
+        
+    /* ===== કાર્ટ ===== */
+    .stSidebar .stColumns {
+        gap: 0.3rem !important;
+    }
+    .stSidebar .stButton button {
+        font-size: 0.7rem !important;
+         padding: 0.3rem 0.6rem !important;
+    }
+}
 
 # ============================================================
 # 🏠 HEADER - મોટો લોગો + મોટું નામ
