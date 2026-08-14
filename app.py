@@ -388,7 +388,12 @@ def check_password():
     st.sidebar.markdown("---")
     password = st.sidebar.text_input("🔒 એડમિન પાસવર્ડ:", type="password", key="admin_pass")
     if password:
-        if password == st.secrets["admin_password"]:
+        # ===== 🔥 Secrets માંથી પાસવર્ડ સુરક્ષિત રીતે વાંચો =====
+        correct_password = st.secrets.get("admin_password", None)
+        if correct_password is None:
+            st.sidebar.error("⚠️ પાસવર્ડ સેટ નથી! કૃપા કરીને Secrets તપાસો.")
+            return False
+        if password == correct_password:
             st.session_state.authenticated = True
             st.sidebar.success("✅ પ્રવેશ મળ્યો!")
             return True
