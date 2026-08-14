@@ -228,7 +228,7 @@ col1, col2 = st.columns([1, 5])
 
 with col1:
     try:
-        st.image("assets/logo.jpg", width=100)
+        st.image("assets/logo.jpg", width=150)
     except:
         st.markdown("## 📸")
 
