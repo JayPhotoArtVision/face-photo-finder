@@ -355,9 +355,6 @@ app = load_insightface()
 # PASSWORD PROTECTION
 # ============================================================
 def check_password():
-    # ===== ડીબગ =====
-    st.sidebar.write("🔑 Secrets keys:", list(st.secrets.keys()))
-    # =================
     if st.session_state.get("authenticated", False):
         return True
     st.sidebar.markdown("---")
