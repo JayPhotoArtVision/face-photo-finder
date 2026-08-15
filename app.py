@@ -387,6 +387,10 @@ option = st.sidebar.selectbox(
 # PASSWORD PROTECTION
 # ============================================================
 def check_password():
+    # ===== ડીબગ: Secrets બતાવો =====
+    st.sidebar.write("🔑 Secrets keys:", list(st.secrets.keys()))
+    # =================================
+    # ... બાકીનો કોડ ...
     if st.session_state.get("authenticated", False):
         return True
     st.sidebar.markdown("---")
