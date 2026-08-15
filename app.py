@@ -39,6 +39,19 @@ st.set_page_config(
 # ============================================================
 # GOOGLE DRIVE INTEGRATION
 # ============================================================
+def get_drive_service():
+    """Google Drive API સર્વિસ ઑબ્જેક્ટ બનાવો"""
+    try:
+        service_account_info = st.secrets["google"]["service_account_info"]
+        creds = service_account.Credentials.from_service_account_info(
+            service_account_info,
+            scopes=['https://www.googleapis.com/auth/drive.file']
+        )
+        return build('drive', 'v3', credentials=creds)
+    except Exception as e:
+        st.error(f"⚠️ Google Drive Secrets error: {e}")
+        return None
+
 def get_drive_folder_id(event_name):
     """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
     drive_service = get_drive_service()
@@ -503,24 +516,22 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         new_event = st.text_input("ઇવેન્ટનું નામ (દા.ત., શર્મા_લગ્ન)")
         event_password = st.text_input("🔒 ઇવેન્ટ પાસવર્ડ (ગ્રાહકો માટે)", type="password")
         
-        if st.button("📌 ઇવેન્ટ બનાવો"):
-            if new_event.strip() and event_password.strip():
-                # ===== ૧. Drive પર ફોલ્ડર બનાવો =====
-                folder_id = get_drive_folder_id(new_event.strip())
-                
-                # ===== 🔥 ૨. જો folder_id None હોય તો ઇવેન્ટ ન બનાવો =====
-                if folder_id is None:
-                    st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં. કૃપા કરીને Secrets તપાસો.")
-                    st.stop()
-                # ========================================================
-                
-                # ===== ૩. ઇવેન્ટ ડેટા સેવ કરો =====
-                event_data = {"password": event_password, "faces": []}
-                save_event_data(new_event.strip(), event_data)
-                st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
-                st.rerun()
-            else:
-                st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
+if st.button("📌 ઇવેન્ટ બનાવો"):
+    if new_event.strip() and event_password.strip():
+        # ===== ૧. Drive પર ફોલ્ડર બનાવો =====
+        folder_id = get_drive_folder_id(new_event.strip())
+        
+        # ===== 🔥 ૨. જો folder_id None હોય તો ઇવેન્ટ ન બનાવો =====
+        if folder_id is None:
+            st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં. કૃપા કરીને Secrets તપાસો.")
+        else:
+            # ===== ૩. ઇવેન્ટ ડેટા સેવ કરો =====
+            event_data = {"password": event_password, "faces": []}
+            save_event_data(new_event.strip(), event_data)
+            st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
+            st.rerun()
+    else:
+        st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
 
     events = get_events_list()
     if not events:
