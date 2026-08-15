@@ -39,19 +39,31 @@ st.set_page_config(
 # ============================================================
 # GOOGLE DRIVE INTEGRATION
 # ============================================================
-def get_drive_service():
-    """Google Drive API સર્વિસ ઑબ્જેક્ટ બનાવો"""
-    try:
-        service_account_info = st.secrets["google"]["service_account_info"]
-        creds = service_account.Credentials.from_service_account_info(
-            service_account_info,
-            scopes=['https://www.googleapis.com/auth/drive.file']
-        )
-        return build('drive', 'v3', credentials=creds)
-    except:
-        st.error("⚠️ Google Drive Secrets સેટ નથી! કૃપા કરીને Secrets માં [google] service_account_info ઉમેરો.")
+ddef get_drive_folder_id(event_name):
+    """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
+    drive_service = get_drive_service()
+    
+    # ===== 🔥 જો drive_service None હોય તો તરત પાછા ફરો =====
+    if drive_service is None:
+        st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી. Secrets ચકાસો.")
         return None
-
+    # ========================================================
+    
+    # પહેલાં ફોલ્ડર શોધો
+    query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    folders = results.get('files', [])
+    
+    if folders:
+        return folders[0]['id']
+    
+    # જો ન મળે તો નવું ફોલ્ડર બનાવો
+    file_metadata = {
+        'name': event_name,
+        'mimeType': 'application/vnd.google-apps.folder'
+    }
+    folder = drive_service.files().create(body=file_metadata, fields='id').execute()
+    return folder.get('id')
 def get_drive_folder_id(event_name):
     """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
     drive_service = get_drive_service()
@@ -73,9 +85,15 @@ def get_drive_folder_id(event_name):
     return folder.get('id')
 
 def upload_to_drive(file_path, folder_id):
-    """Google Drive પર ફોટો અપલોડ કરો અને File ID પાછો આપો"""
+    """Google Drive પર ફોટો અપલોડ કરો"""
+    drive_service = get_drive_service()
+    
+    # ===== 🔥 જો drive_service અથવા folder_id None હોય તો =====
+    if drive_service is None or folder_id is None:
+        return None
+    # ============================================================
+    
     try:
-        drive_service = get_drive_service()
         file_metadata = {
             'name': os.path.basename(file_path),
             'parents': [folder_id]
@@ -503,17 +521,23 @@ if option == "📂 ઇવેન્ટ મેનેજ":
     with st.expander("➕ નવી ઇવેન્ટ બનાવો", expanded=False):
         new_event = st.text_input("ઇવેન્ટનું નામ (દા.ત., શર્મા_લગ્ન)")
         event_password = st.text_input("🔒 ઇવેન્ટ પાસવર્ડ (ગ્રાહકો માટે)", type="password")
+        
         if st.button("📌 ઇવેન્ટ બનાવો"):
             if new_event.strip() and event_password.strip():
-                # Drive પર ફોલ્ડર બનાવો
+                # ===== ૧. Drive પર ફોલ્ડર બનાવો =====
                 folder_id = get_drive_folder_id(new_event.strip())
-                if folder_id:
-                    event_data = {"password": event_password, "faces": []}
-                    save_event_data(new_event.strip(), event_data)
-                    st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
-                    st.rerun()
-                else:
-                    st.error("❌ Drive પર ઇવેન્ટ બનાવતી વખતે ભૂલ!")
+                
+                # ===== 🔥 ૨. જો folder_id None હોય તો ઇવેન્ટ ન બનાવો =====
+                if folder_id is None:
+                    st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં. કૃપા કરીને Secrets તપાસો.")
+                    st.stop()
+                # ========================================================
+                
+                # ===== ૩. ઇવેન્ટ ડેટા સેવ કરો =====
+                event_data = {"password": event_password, "faces": []}
+                save_event_data(new_event.strip(), event_data)
+                st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
+                st.rerun()
             else:
                 st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
 
