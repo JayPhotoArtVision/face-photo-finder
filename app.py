@@ -39,7 +39,7 @@ st.set_page_config(
 # ============================================================
 # GOOGLE DRIVE INTEGRATION
 # ============================================================
-ddef get_drive_folder_id(event_name):
+def get_drive_folder_id(event_name):
     """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
     drive_service = get_drive_service()
     
@@ -48,25 +48,6 @@ ddef get_drive_folder_id(event_name):
         st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી. Secrets ચકાસો.")
         return None
     # ========================================================
-    
-    # પહેલાં ફોલ્ડર શોધો
-    query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    folders = results.get('files', [])
-    
-    if folders:
-        return folders[0]['id']
-    
-    # જો ન મળે તો નવું ફોલ્ડર બનાવો
-    file_metadata = {
-        'name': event_name,
-        'mimeType': 'application/vnd.google-apps.folder'
-    }
-    folder = drive_service.files().create(body=file_metadata, fields='id').execute()
-    return folder.get('id')
-def get_drive_folder_id(event_name):
-    """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
-    drive_service = get_drive_service()
     
     # પહેલાં ફોલ્ડર શોધો
     query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
