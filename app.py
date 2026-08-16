@@ -43,13 +43,9 @@ def get_drive_service():
     """Google Drive API સર્વિસ ઑબ્જેક્ટ બનાવો"""
     try:
         service_account_info = st.secrets["google"]["service_account_info"]
-        
-        # ===== 🔥 જો તે string હોય તો JSON પાર્સ કરો =====
         if isinstance(service_account_info, str):
             import json
             service_account_info = json.loads(service_account_info)
-        # ==================================================
-        
         creds = service_account.Credentials.from_service_account_info(
             service_account_info,
             scopes=['https://www.googleapis.com/auth/drive.file']
@@ -58,6 +54,53 @@ def get_drive_service():
     except Exception as e:
         st.error(f"⚠️ Google Drive Secrets error: {e}")
         return None
+
+def get_drive_folder_id(event_name):
+    """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
+    drive_service = get_drive_service()
+    if drive_service is None:
+        st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી. Secrets ચકાસો.")
+        return None
+    query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    folders = results.get('files', [])
+    if folders:
+        return folders[0]['id']
+    file_metadata = {
+        'name': event_name,
+        'mimeType': 'application/vnd.google-apps.folder'
+    }
+    folder = drive_service.files().create(body=file_metadata, fields='id').execute()
+    return folder.get('id')
+
+def upload_to_drive(file_path, folder_id):
+    """Google Drive પર ફોટો અપલોડ કરો"""
+    drive_service = get_drive_service()
+    if drive_service is None or folder_id is None:
+        return None
+    try:
+        file_metadata = {
+            'name': os.path.basename(file_path),
+            'parents': [folder_id]
+        }
+        media = MediaFileUpload(file_path, resumable=True)
+        file = drive_service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
+        return file.get('id')
+    except Exception as e:
+        st.error(f"❌ Google Drive upload error: {e}")
+        return None
+
+def load_event_data(event_name):
+    """Drive પરથી ઇવેન્ટ ડેટા લોડ કરો"""
+    # ... તમારો કોડ ...
+
+def save_event_data(event_name, data):
+    """Drive પર ઇવેન્ટ ડેટા સેવ કરો"""
+    # ... તમારો કોડ ...
     # ========================================================
     
     # પહેલાં ફોલ્ડર શોધો
@@ -516,20 +559,18 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         
 if st.button("📌 ઇવેન્ટ બનાવો"):
     if new_event.strip() and event_password.strip():
-        # ===== ૧. Drive પર ફોલ્ડર બનાવો =====
         folder_id = get_drive_folder_id(new_event.strip())
         
-        # ===== 🔥 ૨. જો folder_id None હોય તો ઇવેન્ટ ન બનાવો =====
+        # ===== 🔥 જો folder_id None હોય =====
         if folder_id is None:
-            st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં. કૃપા કરીને Secrets તપાસો.")
+            st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
         else:
-            # ===== ૩. ઇવેન્ટ ડેટા સેવ કરો =====
             event_data = {"password": event_password, "faces": []}
             save_event_data(new_event.strip(), event_data)
             st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
             st.rerun()
     else:
-        st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
+        st.error("❌ નામ અને પાસવર્ડ બંને ભરો.")
 
     events = get_events_list()
     if not events:
