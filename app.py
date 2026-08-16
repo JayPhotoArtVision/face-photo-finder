@@ -43,6 +43,13 @@ def get_drive_service():
     """Google Drive API સર્વિસ ઑબ્જેક્ટ બનાવો"""
     try:
         service_account_info = st.secrets["google"]["service_account_info"]
+        
+        # ===== 🔥 જો તે string હોય તો JSON પાર્સ કરો =====
+        if isinstance(service_account_info, str):
+            import json
+            service_account_info = json.loads(service_account_info)
+        # ==================================================
+        
         creds = service_account.Credentials.from_service_account_info(
             service_account_info,
             scopes=['https://www.googleapis.com/auth/drive.file']
@@ -50,15 +57,6 @@ def get_drive_service():
         return build('drive', 'v3', credentials=creds)
     except Exception as e:
         st.error(f"⚠️ Google Drive Secrets error: {e}")
-        return None
-
-def get_drive_folder_id(event_name):
-    """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો (જો ન હોય તો બનાવો)"""
-    drive_service = get_drive_service()
-    
-    # ===== 🔥 જો drive_service None હોય તો તરત પાછા ફરો =====
-    if drive_service is None:
-        st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી. Secrets ચકાસો.")
         return None
     # ========================================================
     
