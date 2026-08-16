@@ -50,34 +50,39 @@ import os
 
 # ... બાકીનો કોડ ...
 
+from google.oauth2 import service_account   # આ ટોચ પર ઉમેરો
+
 def get_drive_service():
-    """OAuth 2.0 નો ઉપયોગ કરીને Google Drive સર્વિસ બનાવો"""
-    creds = None
-    
-    # token.pickle ફાઈલમાંથી સેવ કરેલા credentials લોડ કરો
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
-    
-    # જો credentials ન હોય અથવા સમાપ્ત (expired) થઈ ગયા હોય
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            # Refresh token નો ઉપયોગ કરીને નવો access token મેળવો
-            creds.refresh(Request())
-            # નવા credentials ને સેવ કરો
-            with open('token.pickle', 'wb') as token:
-                pickle.dump(creds, token)
-        else:
-            # જો token.pickle ન મળે તો (ફક્ત લોકલ માટે)
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json',
-                scopes=['https://www.googleapis.com/auth/drive.file']
-            )
-            creds = flow.run_local_server(port=0)
-            with open('token.pickle', 'wb') as token:
-                pickle.dump(creds, token)
-    
-    return build('drive', 'v3', credentials=creds)
+    """Service Account (secrets.toml) અથવા OAuth (લોકલ માટે) વાપરો"""
+    try:
+        # ૧. પહેલાં secrets.toml માંથી Service Account અજમાવો
+        service_account_info = dict(st.secrets["gcp_service_account"])
+        creds = service_account.Credentials.from_service_account_info(
+            service_account_info,
+            scopes=['https://www.googleapis.com/auth/drive']
+        )
+        return build('drive', 'v3', credentials=creds)
+    except Exception as e:
+        # ૨. જો Service Account ન મળે, તો જૂની OAuth પદ્ધતિ (ફક્ત લોકલ માટે)
+        st.warning("⚠️ Service Account લોડ ન થયો, OAuth (લોકલ) અજમાવી રહ્યા છીએ...")
+        creds = None
+        if os.path.exists('token.pickle'):
+            with open('token.pickle', 'rb') as token:
+                creds = pickle.load(token)
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                with open('token.pickle', 'wb') as token:
+                    pickle.dump(creds, token)
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    'credentials.json',
+                    scopes=['https://www.googleapis.com/auth/drive.file']
+                )
+                creds = flow.run_local_server(port=0)
+                with open('token.pickle', 'wb') as token:
+                    pickle.dump(creds, token)
+        return build('drive', 'v3', credentials=creds)
 
 def get_drive_folder_id(event_name):
     """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો"""
@@ -503,7 +508,6 @@ app = load_insightface()
 # CONSTANTS
 # ============================================================
 PHOTO_PRICE = 10
-MAIN_DRIVE_FOLDER_ID = "1B-qd1ZtJkQfxIUzpUCxdvaVIMAkVQtqH"
 # ============================================================
 # PAGE 1: MANAGE EVENTS
 # ============================================================
@@ -523,7 +527,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
             st.write("🔍 DEBUG: Button clicked!")
             if new_event.strip() and event_password.strip():
                 st.write(f"🔍 DEBUG: Event={new_event}, Password={event_password}")
-                folder_id = MAIN_DRIVE_FOLDER_ID
+                folder_id = get_drive_folder_id(new_event.strip())
                 st.write(f"🔍 DEBUG: folder_id = {folder_id}")
                 if folder_id is None:
                     st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
@@ -546,7 +550,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         
         if selected_event:
             st.subheader(f"📤 '{selected_event}' માં ફોટા અપલોડ કરો")
-            folder_id = MAIN_DRIVE_FOLDER_ID(new_event.strip())
+            folder_id = get_drive_folder_id(new_event.strip())
             uploaded_files = st.file_uploader(
                 "📸 ફોટા પસંદ કરો (JPG/PNG)...",
                 type=["jpg", "jpeg", "png"],
