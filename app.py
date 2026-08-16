@@ -480,7 +480,7 @@ app = load_insightface()
 # CONSTANTS
 # ============================================================
 PHOTO_PRICE = 10
-MAIN_DRIVE_FOLDER_ID = "face-photo-storage@face-photo-storage.iam.gserviceaccount.com"
+MAIN_DRIVE_FOLDER_ID = "1B-qd1ZtJkQfxIUzpUCxdvaVIMAkVQtqH"
 # ============================================================
 # PAGE 1: MANAGE EVENTS
 # ============================================================
