@@ -94,6 +94,7 @@ def upload_to_drive(file_path, folder_id):
             body=file_metadata,
             media_body=media,
             fields='id'
+            supportsAllDrives=True
         ).execute()
         return file.get('id')
     except Exception as e:
@@ -479,7 +480,7 @@ app = load_insightface()
 # CONSTANTS
 # ============================================================
 PHOTO_PRICE = 10
-
+MAIN_DRIVE_FOLDER_ID = "face-photo-storage@face-photo-storage.iam.gserviceaccount.com"
 # ============================================================
 # PAGE 1: MANAGE EVENTS
 # ============================================================
@@ -499,7 +500,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
             st.write("🔍 DEBUG: Button clicked!")
             if new_event.strip() and event_password.strip():
                 st.write(f"🔍 DEBUG: Event={new_event}, Password={event_password}")
-                folder_id = get_drive_folder_id(new_event.strip())
+                folder_id = MAIN_DRIVE_FOLDER_ID(new_event.strip())
                 st.write(f"🔍 DEBUG: folder_id = {folder_id}")
                 if folder_id is None:
                     st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
