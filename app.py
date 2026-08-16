@@ -523,7 +523,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
             st.write("🔍 DEBUG: Button clicked!")
             if new_event.strip() and event_password.strip():
                 st.write(f"🔍 DEBUG: Event={new_event}, Password={event_password}")
-                folder_id = MAIN_DRIVE_FOLDER_ID(new_event.strip())
+                folder_id = MAIN_DRIVE_FOLDER_ID
                 st.write(f"🔍 DEBUG: folder_id = {folder_id}")
                 if folder_id is None:
                     st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
