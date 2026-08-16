@@ -559,7 +559,7 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
             st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
         else:
             event_data = {"password": event_password, "faces": []}
-            def save_event_data_to_drive(event_name, data, folder_id):   # <--- અહીં folder_id ઉમેરો
+        def save_event_data_to_drive(event_name, data, folder_id):   # <--- અહીં folder_id ઉમેરો
             drive_service = get_drive_service()
             # હવે અહીં ફરી શોધવાની જરૂર નથી, કારણ કે folder_id તો બહારથી આવી ગઈ છે.
             # ... બાકીનો કોડ એમ જ રાખો (જેમાં folder_id નો ઉપયોગ થાય છે)
