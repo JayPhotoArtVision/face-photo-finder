@@ -169,7 +169,6 @@ def save_event_data_to_drive(event_name, data):
     """Google Drive પર ઇવેન્ટનું data.json સેવ કરો"""
     try:
         drive_service = get_drive_service()
-        folder_id = get_drive_folder_id(event_name)
         
         # Temp file બનાવો
         temp_path = f"temp_{event_name}_data.json"
@@ -560,7 +559,7 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
             st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
         else:
             event_data = {"password": event_password, "faces": []}
-            save_event_data(new_event.strip(), event_data)
+            save_event_data_to_drive(new_event.strip(), event_data, folder_id)   # <--- folder_id પાસ કરો
             st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
             st.rerun()
     else:
