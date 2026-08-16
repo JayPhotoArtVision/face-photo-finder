@@ -57,23 +57,18 @@ def get_drive_service():
 
 def get_drive_folder_id(event_name):
     """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો"""
-    st.write(f"🔍 DEBUG: get_drive_folder_id called with: {event_name}")  # <--- આ ઉમેરો
-    
+    st.write(f"🔍 DEBUG: get_drive_folder_id called with: {event_name}")  # <--- ડીબગ, ઇચ્છા હોય તો દૂર કરો
     drive_service = get_drive_service()
-    st.write(f"🔍 DEBUG: drive_service = {drive_service}")  # <--- આ ઉમેરો
-    
+    st.write(f"🔍 DEBUG: drive_service = {drive_service}")  # <--- ડીબગ
     if drive_service is None:
         st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી. Secrets ચકાસો.")
         return None
-    
     try:
         query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
         results = drive_service.files().list(q=query, fields="files(id, name)").execute()
         folders = results.get('files', [])
-        
         if folders:
             return folders[0]['id']
-        
         file_metadata = {
             'name': event_name,
             'mimeType': 'application/vnd.google-apps.folder'
@@ -84,40 +79,11 @@ def get_drive_folder_id(event_name):
         st.error(f"❌ Google Drive API Error: {e}")
         return None
 
-def load_event_data(event_name):
-    """Drive પરથી ઇવેન્ટ ડેટા લોડ કરો"""
-    # ... તમારો કોડ ...
-
-def save_event_data(event_name, data):
-    """Drive પર ઇવેન્ટ ડેટા સેવ કરો"""
-    # ... તમારો કોડ ...
-    # ========================================================
-    
-    # પહેલાં ફોલ્ડર શોધો
-    query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    folders = results.get('files', [])
-    
-    if folders:
-        return folders[0]['id']
-    
-    # જો ન મળે તો નવું ફોલ્ડર બનાવો
-    file_metadata = {
-        'name': event_name,
-        'mimeType': 'application/vnd.google-apps.folder'
-    }
-    folder = drive_service.files().create(body=file_metadata, fields='id').execute()
-    return folder.get('id')
-
 def upload_to_drive(file_path, folder_id):
     """Google Drive પર ફોટો અપલોડ કરો"""
     drive_service = get_drive_service()
-    
-    # ===== 🔥 જો drive_service અથવા folder_id None હોય તો =====
     if drive_service is None or folder_id is None:
         return None
-    # ============================================================
-    
     try:
         file_metadata = {
             'name': os.path.basename(file_path),
@@ -139,22 +105,17 @@ def load_event_data_from_drive(event_name):
     try:
         drive_service = get_drive_service()
         folder_id = get_drive_folder_id(event_name)
-        
         query = f"name='data.json' and '{folder_id}' in parents and trashed=false"
         results = drive_service.files().list(q=query, fields="files(id)").execute()
         files = results.get('files', [])
-        
         if not files:
             return {"password": "", "faces": []}
-        
         file_id = files[0]['id']
         request = drive_service.files().get_media(fileId=file_id)
         file_content = request.execute()
         data = json.loads(file_content.decode('utf-8'))
-        
         if isinstance(data, list):
             data = {"password": "", "faces": data}
-        
         for face in data.get("faces", []):
             if "embedding" in face and isinstance(face["embedding"], str):
                 try:
@@ -165,22 +126,18 @@ def load_event_data_from_drive(event_name):
     except Exception as e:
         return {"password": "", "faces": []}
 
-def save_event_data_to_drive(event_name, data):
-    """Google Drive પર ઇવેન્ટનું data.json સેવ કરો"""
+def save_event_data_to_drive(event_name, data, folder_id):
+    """Google Drive પર ઇવેન્ટનું data.json સેવ કરો (folder_id બહારથી આવે છે)"""
     try:
         drive_service = get_drive_service()
-        
-        # Temp file બનાવો
         temp_path = f"temp_{event_name}_data.json"
         with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
-        
         # જૂનું data.json ડિલીટ કરો
         query = f"name='data.json' and '{folder_id}' in parents and trashed=false"
         results = drive_service.files().list(q=query, fields="files(id)").execute()
         for file in results.get('files', []):
             drive_service.files().delete(fileId=file['id']).execute()
-        
         # નવું data.json અપલોડ કરો
         media = MediaFileUpload(temp_path, mimetype='application/json')
         file_metadata = {
@@ -192,7 +149,6 @@ def save_event_data_to_drive(event_name, data):
             media_body=media,
             fields='id'
         ).execute()
-        
         os.remove(temp_path)
         return True
     except Exception as e:
@@ -214,12 +170,10 @@ def get_events_list():
         return []
 
 def load_event_data(event_name):
-    """Drive પરથી ઇવેન્ટ ડેટા લોડ કરો"""
     return load_event_data_from_drive(event_name)
 
-def save_event_data(event_name, data):
-    """Drive પર ઇવેન્ટ ડેટા સેવ કરો"""
-    return save_event_data_to_drive(event_name, data)
+def save_event_data(event_name, data, folder_id):
+    return save_event_data_to_drive(event_name, data, folder_id)
 
 # ============================================================
 # ANALYTICS
@@ -407,7 +361,7 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
 
-st.sidebar.image("assets/logo.jpg", use_container_width=True)
+st.sidebar.image("assets/logo.jpg", width="stretch")
 st.sidebar.markdown("""
 <div style="text-align: center; padding: 0.5rem 0 1.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;">
     <div style="color: white; font-weight: 800; font-size: 1.4rem; margin: 0; letter-spacing: 1px;">
@@ -429,16 +383,11 @@ option = st.sidebar.selectbox(
 # PASSWORD PROTECTION
 # ============================================================
 def check_password():
-    # ===== ડીબગ: Secrets બતાવો =====
-    st.sidebar.write("🔑 Secrets keys:", list(st.secrets.keys()))
-    # =================================
-    # ... બાકીનો કોડ ...
     if st.session_state.get("authenticated", False):
         return True
     st.sidebar.markdown("---")
     password = st.sidebar.text_input("🔒 એડમિન પાસવર્ડ:", type="password", key="admin_pass")
     if password:
-        # ===== 🔥 Secrets માંથી પાસવર્ડ સુરક્ષિત રીતે વાંચો =====
         correct_password = st.secrets.get("admin_password", None)
         if correct_password is None:
             st.sidebar.error("⚠️ પાસવર્ડ સેટ નથી! કૃપા કરીને Secrets તપાસો.")
@@ -546,27 +495,24 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         new_event = st.text_input("ઇવેન્ટનું નામ (દા.ત., શર્મા_લગ્ન)")
         event_password = st.text_input("🔒 ઇવેન્ટ પાસવર્ડ (ગ્રાહકો માટે)", type="password")
         
-if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
-    st.write("🔍 DEBUG: Button clicked!")  # <--- આ લીટી ઉમેરો (ચકાસણી માટે)
-    
-    if new_event.strip() and event_password.strip():
-        st.write(f"🔍 DEBUG: Event={new_event}, Password={event_password}")
-        
-        folder_id = get_drive_folder_id(new_event.strip())
-        st.write(f"🔍 DEBUG: folder_id = {folder_id}")  # <--- આ લીટી ઉમેરો
-        
-        if folder_id is None:
-            st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
-        else:
-            event_data = {"password": event_password, "faces": []}
-        def save_event_data_to_drive(event_name, data, folder_id):   # <--- અહીં folder_id ઉમેરો
-            drive_service = get_drive_service()
-            # હવે અહીં ફરી શોધવાની જરૂર નથી, કારણ કે folder_id તો બહારથી આવી ગઈ છે.
-            # ... બાકીનો કોડ એમ જ રાખો (જેમાં folder_id નો ઉપયોગ થાય છે)
-            st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
-            st.rerun()
-    else:
-        st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
+        if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
+            st.write("🔍 DEBUG: Button clicked!")
+            if new_event.strip() and event_password.strip():
+                st.write(f"🔍 DEBUG: Event={new_event}, Password={event_password}")
+                folder_id = get_drive_folder_id(new_event.strip())
+                st.write(f"🔍 DEBUG: folder_id = {folder_id}")
+                if folder_id is None:
+                    st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
+                else:
+                    event_data = {"password": event_password, "faces": []}
+                    success = save_event_data(new_event.strip(), event_data, folder_id)
+                    if success:
+                        st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
+                        st.rerun()
+                    else:
+                        st.error("❌ ઇવેન્ટ સેવ કરતી વખતે ભૂલ આવી.")
+            else:
+                st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
 
     events = get_events_list()
     if not events:
@@ -608,9 +554,9 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
                     
                     if len(faces) == 0:
                         st.warning(f"⚠️ {file.name} માં કોઈ ચહેરો નથી.")
-                        continue   # <--- અહીં continue છે, પણ તેની નીચે કંઈ નથી (બસ)
+                        continue
                     
-                    # ---- હવે ચહેરો મળ્યો છે, તો પ્રોસેસ કરો ----
+                    # ડ્રાઈવ પર અપલોડ
                     file_ext = os.path.splitext(file.name)[1]
                     unique_name = f"{hashlib.md5(file.name.encode() + str(datetime.datetime.now()).encode()).hexdigest()[:10]}{file_ext}"
                     drive_file_id = upload_to_drive(tmp_path, folder_id)
@@ -619,52 +565,7 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
                         st.error(f"❌ {file.name} Drive પર અપલોડ થયો નહીં!")
                         continue
                     
-                    for j, face in enumerate(faces):
-                        # ... તમારો ચહેરો ક્રોપ, એમ્બેડિંગ વાળો કોડ ...
-                        # (તમારો એ જૂનો કોડ અહીં રહેશે)
-                        pass  # આને તમારા વાસ્તવિક કોડથી બદલો
-                    
-                    progress_bar.progress((i + 1) / total_files)
-                
-                status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
-                # st.rerun()  # <--- આને કોમેન્ટ જ રાખો (કાઢી ન નાખો)
-
-                # ==============================================================
-                # 🔽🔽🔽 આખો 'લેબલ કરેલા ફોટા' વાળો ભાગ અહીં લાવો (LOOP ની બહાર) 🔽🔽🔽
-                # ==============================================================
-
-                st.divider()
-                event_data = load_event_data(selected_event)  # <--- આ હવે લૂપની બહાર છે, એટલે સારું ચાલશે
-                faces_list = event_data.get("faces", [])
-                st.write(f"📊 આ ઇવેન્ટમાં કુલ **{len(faces_list)}** લેબલ કરેલા ચહેરા છે.")
-
-                if len(faces_list) > 0:
-                    st.subheader("🖼️ લેબલ કરેલા ફોટા")
-                    for i in range(0, len(faces_list), 4):
-                        cols = st.columns(4)
-                        for j, col in enumerate(cols):
-                            idx = i + j
-                            if idx < len(faces_list):
-                                item = faces_list[idx]
-                                file_id = item.get("drive_file_id")
-                                if file_id:
-                                    img_url = f"https://drive.google.com/uc?export=view&id={file_id}"
-                                    with col:
-                                        st.image(img_url, caption=f"લેબલ: {item['person_label']}", width=150)
-                                else:
-                                    st.write(f"❌ {item['filename']} (Drive ID missing)")
-                else:
-                    st.info("ℹ️ હજુ સુધી કોઈ ફોટો લેબલ થયો નથી.")                 
-                    
-                    # ===== 🔥 Drive પર ફોટો અપલોડ કરો =====
-                    file_ext = os.path.splitext(file.name)[1]
-                    unique_name = f"{hashlib.md5(file.name.encode() + str(datetime.datetime.now()).encode()).hexdigest()[:10]}{file_ext}"
-                    drive_file_id = upload_to_drive(tmp_path, folder_id)
-                    
-                    if drive_file_id is None:
-                        st.error(f"❌ {file.name} Drive પર અપલોડ થયો નહીં!")
-                        continue
-                    
+                    # દરેક ચહેરા માટે
                     for j, face in enumerate(faces):
                         bbox = face.bbox.astype(int)
                         x1, y1, x2, y2 = bbox
@@ -710,7 +611,7 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
                     progress_bar.progress((i + 1) / total_files)
                 
                 status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
-                # st.rerun()   # <--- આ લાઈનને કોમેન્ટ કરી દો અથવા ડિલીટ કરી દો
+                # st.rerun()  # હવે જરૂર નથી, કારણ કે pending_faces સેટ થઈ ગયા છે.
             
             # ---------- SMART GROUP LABELING ----------
             if 'pending_faces' in st.session_state and st.session_state.pending_faces:
@@ -779,7 +680,8 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
                             })
                             count += 1
                     event_data["faces"] = existing_faces
-                    save_event_data(selected_event, event_data)
+                    folder_id = get_drive_folder_id(selected_event)
+                    save_event_data(selected_event, event_data, folder_id)
                     
                     for face_data in pending:
                         try:
@@ -803,7 +705,6 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
                         idx = i + j
                         if idx < len(faces_list):
                             item = faces_list[idx]
-                            # Drive પરથી ફોટો બતાવો (HTML img tag with drive file id)
                             file_id = item.get("drive_file_id")
                             if file_id:
                                 img_url = f"https://drive.google.com/uc?export=view&id={file_id}"
@@ -980,7 +881,7 @@ elif option == "🔍 ફોટો શોધો":
                                         matched_persons.add(match['person'])
                                 
                                 if matched_persons:
-                                    # ===== 🔔 TELEGRAM NOTIFICATION =====
+                                    # TELEGRAM NOTIFICATION
                                     send_telegram_message(
                                         f"✅ <b>નવો ગ્રાહક!</b>\n"
                                         f"📸 ઇવેન્ટ: {event_name}\n"
@@ -988,10 +889,7 @@ elif option == "🔍 ફોટો શોધો":
                                         f"🕒 {datetime.datetime.now().strftime('%d-%m-%Y %H:%M')}"
                                     )
                                     
-                                    # ============================================================
-                                    # 🛒 CART SYSTEM - ફોટા સિલેક્ટ કરવા અને કુલ કિંમત બતાવવા
-                                    # ============================================================
-                                    
+                                    # CART SYSTEM
                                     for person in matched_persons:
                                         st.markdown(f"**👤 વ્યક્તિ: {person}**")
                                         
@@ -999,21 +897,17 @@ elif option == "🔍 ફોટો શોધો":
                                         
                                         if person_photos:
                                             for idx, item in enumerate(person_photos):
-                                                # 4 કોલમની ગ્રીડ (દર 4 ફોટા પછી નવી લાઈન)
                                                 if idx % 4 == 0:
                                                     cols = st.columns(4)
-                                                
-                                                col = cols[idx % 4]   # <--- અહીં col મળે છે
-                                                
-                                                with col:   # <--- આ લાઈન એમ જ રાખો
+                                                col = cols[idx % 4]
+                                                with col:
                                                     try:
                                                         file_id = item.get("drive_file_id")
-                                                        img_path = None  # પહેલાં ખાલી સેટ કરો (આ નવી લાઈન છે)
-                                                        
+                                                        img_path = None
                                                         if file_id:
                                                             img_url = f"https://drive.google.com/uc?export=view&id={file_id}"
                                                             st.image(img_url, width=150)
-                                                            img_path = img_url  # URL ને જ પાથ તરીકે સ્ટોર કરો
+                                                            img_path = img_url
                                                         else:
                                                             img_path = os.path.join("events", event_name, "images", item["filename"])
                                                             st.image(img_path, width=150)
@@ -1021,13 +915,9 @@ elif option == "🔍 ફોટો શોધો":
                                                         st.write(f"📁 {item.get('filename', 'Unknown')}")
                                                         img_path = None
 
-                                                    # ===== ચેકબોક્સ (કાર્ટ માટે) - આ ભાગ જૂનો જ રાખવાનો છે =====
                                                     price = PHOTO_PRICE
                                                     cart_key = f"cart_{person}_{idx}"
-                                                    if price == 0:
-                                                        selected = st.checkbox(f"🆓 FREE", key=cart_key, value=False)
-                                                    else:
-                                                        selected = st.checkbox(f"🛒 ₹{price}", key=cart_key, value=False)
+                                                    selected = st.checkbox(f"🛒 ₹{price}" if price > 0 else "🆓 FREE", key=cart_key)
                                                     
                                                     if selected:
                                                         if "cart" not in st.session_state:
@@ -1036,32 +926,7 @@ elif option == "🔍 ફોટો શોધો":
                                                             "person": person,
                                                             "filename": item["filename"],
                                                             "price": price,
-                                                            "img_path": img_path,   # હવે આ img_path ખાલી નહીં હોય!
-                                                            "drive_file_id": item.get("drive_file_id")
-                                                        }
-                                                        if cart_item not in st.session_state.cart:
-                                                            st.session_state.cart.append(cart_item)
-                                                    else:
-                                                        if "cart" in st.session_state:
-                                                            st.session_state.cart = [c for c in st.session_state.cart if not (c["person"] == person and c["filename"] == item["filename"])]
-                                                    
-                                                    # ===== ચેકબોક્સ (કાર્ટ માટે) =====
-                                                    price = PHOTO_PRICE
-                                                    cart_key = f"cart_{person}_{idx}"
-                                                    if price == 0:
-                                                        selected = st.checkbox(f"🆓 FREE", key=cart_key, value=False)
-                                                    else:
-                                                        selected = st.checkbox(f"🛒 ₹{price}", key=cart_key, value=False)
-                                                    
-                                                    if selected:
-                                                        if "cart" not in st.session_state:
-                                                            st.session_state.cart = []
-                                                        # Drive URL અથવા લોકલ પાથ સ્ટોર કરો
-                                                        cart_item = {
-                                                            "person": person,
-                                                            "filename": item["filename"],
-                                                            "price": price,
-                                                            "img_path": img_path,   # ફોટો બતાવવા માટે
+                                                            "img_path": img_path,
                                                             "drive_file_id": item.get("drive_file_id")
                                                         }
                                                         if cart_item not in st.session_state.cart:
@@ -1070,11 +935,10 @@ elif option == "🔍 ફોટો શોધો":
                                                         if "cart" in st.session_state:
                                                             st.session_state.cart = [c for c in st.session_state.cart if not (c["person"] == person and c["filename"] == item["filename"])]
                                             
-                                            # ===== "આ વ્યક્તિના બધા ફોટા કાર્ટમાં ઉમેરો" =====
                                             if st.button(f"➕ {person} ના બધા ફોટા કાર્ટમાં ઉમેરો", key=f"add_all_{person}"):
                                                 for item in person_photos:
                                                     img_path = os.path.join("events", event_name, "images", item["filename"])
-                                                    price = PHOTO_PRICE  # <--- ફિક્સ્ડ કિંમત
+                                                    price = PHOTO_PRICE
                                                     cart_item = {
                                                         "person": person,
                                                         "filename": item["filename"],
@@ -1089,9 +953,7 @@ elif option == "🔍 ફોટો શોધો":
                                         else:
                                             st.write("❌ આ વ્યક્તિના કોઈ ફોટા નથી.")
                                     
-                                    # ============================================================
-                                    # 🛒 CART DISPLAY + PAYMENT + SHARING
-                                    # ============================================================
+                                    # CART DISPLAY
                                     st.sidebar.markdown("---")
                                     st.sidebar.markdown("## 🛒 તમારું કાર્ટ")
                                     
@@ -1112,14 +974,11 @@ elif option == "🔍 ફોટો શોધો":
                                             st.session_state.payment_done = False
                                             st.rerun()
                                         
-                                        # ============================================================
-                                        # 🧾 CHECKOUT (UPI PAYMENT)
-                                        # ============================================================
+                                        # CHECKOUT
                                         if st.sidebar.button(f"🧾 ચેકઆઉટ (₹{total_price})"):
                                             MY_UPI_ID = "dineshmakwna123@oksbi"
                                             MY_NAME = "Jay Photography"
                                             order_id = f"PHOTO_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-                                            
                                             encoded_name = urllib.parse.quote(MY_NAME)
                                             encoded_note = urllib.parse.quote("Photo Download Payment")
                                             
@@ -1131,22 +990,19 @@ elif option == "🔍 ફોટો શોધો":
                                                 "📱 Generic UPI": f"upi://pay?pa={MY_UPI_ID}&pn={encoded_name}&am={total_price}&cu=INR&tn={encoded_note}&tr={order_id}"
                                             }
                                             
-                                                                                        # ===== UPI લોગો સાથે લિંક બટનો =====
                                             st.sidebar.markdown("### 💳 તમારી UPI એપ પસંદ કરો:")
-                                            
-                                            st.sidebar.link_button("🟢 Google Pay", upi_links["📱 Google Pay"], use_container_width=True)
-                                            st.sidebar.link_button("🟠 PhonePe", upi_links["📱 PhonePe"], use_container_width=True)
-                                            st.sidebar.link_button("🔵 Paytm", upi_links["📱 Paytm"], use_container_width=True)
-                                            st.sidebar.link_button("🟣 BHIM", upi_links["📱 BHIM"], use_container_width=True)
-                                            st.sidebar.link_button("📱 અન્ય UPI એપ", upi_links["📱 Generic UPI"], use_container_width=True)
+                                            st.sidebar.link_button("🟢 Google Pay", upi_links["📱 Google Pay"], width="stretch")
+                                            st.sidebar.link_button("🟠 PhonePe", upi_links["📱 PhonePe"], width="stretch")
+                                            st.sidebar.link_button("🔵 Paytm", upi_links["📱 Paytm"], width="stretch")
+                                            st.sidebar.link_button("🟣 BHIM", upi_links["📱 BHIM"], width="stretch")
+                                            st.sidebar.link_button("📱 અન્ય UPI એપ", upi_links["📱 Generic UPI"], width="stretch")
                                             
                                             st.sidebar.markdown("---")
-                                            if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!", use_container_width=True):
+                                            if st.sidebar.button("✅ પેમેન્ટ થઈ ગયું!", width="stretch"):
                                                 unique_persons = set()
                                                 for item in cart:
                                                     unique_persons.add(item['person'])
                                                 persons_text = ", ".join(unique_persons)
-                                                
                                                 send_telegram_message(
                                                     f"💰 <b>પેમેન્ટ મળ્યું!</b>\n"
                                                     f"📸 ઇવેન્ટ: {event_name}\n"
@@ -1157,9 +1013,7 @@ elif option == "🔍 ફોટો શોધો":
                                                 st.session_state.payment_done = True
                                                 st.rerun()
                                         
-                                        # ============================================================
-                                        # 🔓 PAYMENT DONE → DOWNLOAD + SHARING
-                                        # ============================================================
+                                        # PAYMENT DONE -> DOWNLOAD
                                         if st.session_state.get("payment_done", False):
                                             st.sidebar.markdown("---")
                                             st.sidebar.markdown("## 📥 તમારા ફોટા ડાઉનલોડ કરો")
@@ -1249,7 +1103,7 @@ elif option == "📱 QR કોડ બનાવો":
             
             col1, col2 = st.columns([1, 1])
             with col1:
-                st.image(qr_img_array, caption=f"📱 '{selected_event}' માટે QR કોડ", width='content')
+                st.image(qr_img_array, caption=f"📱 '{selected_event}' માટે QR કોડ", width=300)
                 st.success(f"🔗 URL: {url}")
                 st.caption("📌 ગ્રાહકો આ QR કોડ સ્કેન કરીને તેમના ફોટા જોઈ શકે છે.")
                 
