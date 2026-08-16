@@ -664,7 +664,6 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
                     progress_bar.progress((i + 1) / total_files)
                 
                 status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
-                st.rerun()
             
             # ---------- SMART GROUP LABELING ----------
             if 'pending_faces' in st.session_state and st.session_state.pending_faces:
