@@ -15,12 +15,15 @@ import requests
 import urllib.parse
 import csv
 import pandas as pd
+import pickle                         # ✅ NEW
 from insightface.app import FaceAnalysis
 from face_search import find_best_global_assignment
 from PIL import Image
-from google.oauth2 import service_account
+from google.oauth2 import service_account   # (તમે આને રાખી શકો છો અથવા કાઢી શકો છો)
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from google_auth_oauthlib.flow import InstalledAppFlow   # ✅ NEW
+from google.auth.transport.requests import Request       # ✅ NEW
 
 # ============================================================
 # ENVIRONMENT VARIABLE (OpenCV માટે)
@@ -39,21 +42,42 @@ st.set_page_config(
 # ============================================================
 # GOOGLE DRIVE INTEGRATION
 # ============================================================
+import pickle
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+import os
+
+# ... બાકીનો કોડ ...
+
 def get_drive_service():
-    """Google Drive API સર્વિસ ઑબ્જેક્ટ બનાવો"""
-    try:
-        service_account_info = st.secrets["google"]["service_account_info"]
-        if isinstance(service_account_info, str):
-            import json
-            service_account_info = json.loads(service_account_info)
-        creds = service_account.Credentials.from_service_account_info(
-            service_account_info,
-            scopes=['https://www.googleapis.com/auth/drive.file']
-        )
-        return build('drive', 'v3', credentials=creds)
-    except Exception as e:
-        st.error(f"⚠️ Google Drive Secrets error: {e}")
-        return None
+    """OAuth 2.0 નો ઉપયોગ કરીને Google Drive સર્વિસ બનાવો"""
+    creds = None
+    
+    # token.pickle ફાઈલમાંથી સેવ કરેલા credentials લોડ કરો
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    
+    # જો credentials ન હોય અથવા સમાપ્ત (expired) થઈ ગયા હોય
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            # Refresh token નો ઉપયોગ કરીને નવો access token મેળવો
+            creds.refresh(Request())
+            # નવા credentials ને સેવ કરો
+            with open('token.pickle', 'wb') as token:
+                pickle.dump(creds, token)
+        else:
+            # જો token.pickle ન મળે તો (ફક્ત લોકલ માટે)
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json',
+                scopes=['https://www.googleapis.com/auth/drive.file']
+            )
+            creds = flow.run_local_server(port=0)
+            with open('token.pickle', 'wb') as token:
+                pickle.dump(creds, token)
+    
+    return build('drive', 'v3', credentials=creds)
 
 def get_drive_folder_id(event_name):
     """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો"""
@@ -94,7 +118,6 @@ def upload_to_drive(file_path, folder_id):
             body=file_metadata,
             media_body=media,
             fields='id',
-            supportsAllDrives=True
         ).execute()
         return file.get('id')
     except Exception as e:
@@ -480,7 +503,7 @@ app = load_insightface()
 # CONSTANTS
 # ============================================================
 PHOTO_PRICE = 10
-MAIN_DRIVE_FOLDER_ID = "1B-qd1ZtJkQfxIUzpUCxdvaVIMAkVQtqH"
+MAIN_DRIVE_FOLDER_ID = "sonal.d.m302@gmail.com"
 # ============================================================
 # PAGE 1: MANAGE EVENTS
 # ============================================================
