@@ -608,7 +608,53 @@ if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
                     
                     if len(faces) == 0:
                         st.warning(f"⚠️ {file.name} માં કોઈ ચહેરો નથી.")
+                        continue   # <--- અહીં continue છે, પણ તેની નીચે કંઈ નથી (બસ)
+                    
+                    # ---- હવે ચહેરો મળ્યો છે, તો પ્રોસેસ કરો ----
+                    file_ext = os.path.splitext(file.name)[1]
+                    unique_name = f"{hashlib.md5(file.name.encode() + str(datetime.datetime.now()).encode()).hexdigest()[:10]}{file_ext}"
+                    drive_file_id = upload_to_drive(tmp_path, folder_id)
+                    
+                    if drive_file_id is None:
+                        st.error(f"❌ {file.name} Drive પર અપલોડ થયો નહીં!")
                         continue
+                    
+                    for j, face in enumerate(faces):
+                        # ... તમારો ચહેરો ક્રોપ, એમ્બેડિંગ વાળો કોડ ...
+                        # (તમારો એ જૂનો કોડ અહીં રહેશે)
+                        pass  # આને તમારા વાસ્તવિક કોડથી બદલો
+                    
+                    progress_bar.progress((i + 1) / total_files)
+                
+                status_text.text("✅ ચહેરા શોધાઈ ગયા! કૃપા કરીને નીચે લેબલ આપો.")
+                # st.rerun()  # <--- આને કોમેન્ટ જ રાખો (કાઢી ન નાખો)
+
+                # ==============================================================
+                # 🔽🔽🔽 આખો 'લેબલ કરેલા ફોટા' વાળો ભાગ અહીં લાવો (LOOP ની બહાર) 🔽🔽🔽
+                # ==============================================================
+
+                st.divider()
+                event_data = load_event_data(selected_event)  # <--- આ હવે લૂપની બહાર છે, એટલે સારું ચાલશે
+                faces_list = event_data.get("faces", [])
+                st.write(f"📊 આ ઇવેન્ટમાં કુલ **{len(faces_list)}** લેબલ કરેલા ચહેરા છે.")
+
+                if len(faces_list) > 0:
+                    st.subheader("🖼️ લેબલ કરેલા ફોટા")
+                    for i in range(0, len(faces_list), 4):
+                        cols = st.columns(4)
+                        for j, col in enumerate(cols):
+                            idx = i + j
+                            if idx < len(faces_list):
+                                item = faces_list[idx]
+                                file_id = item.get("drive_file_id")
+                                if file_id:
+                                    img_url = f"https://drive.google.com/uc?export=view&id={file_id}"
+                                    with col:
+                                        st.image(img_url, caption=f"લેબલ: {item['person_label']}", width=150)
+                                else:
+                                    st.write(f"❌ {item['filename']} (Drive ID missing)")
+                else:
+                    st.info("ℹ️ હજુ સુધી કોઈ ફોટો લેબલ થયો નથી.")                 
                     
                     # ===== 🔥 Drive પર ફોટો અપલોડ કરો =====
                     file_ext = os.path.splitext(file.name)[1]
