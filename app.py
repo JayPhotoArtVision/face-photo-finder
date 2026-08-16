@@ -546,7 +546,7 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         
         if selected_event:
             st.subheader(f"📤 '{selected_event}' માં ફોટા અપલોડ કરો")
-            
+            folder_id = MAIN_DRIVE_FOLDER_ID(new_event.strip())
             uploaded_files = st.file_uploader(
                 "📸 ફોટા પસંદ કરો (JPG/PNG)...",
                 type=["jpg", "jpeg", "png"],
