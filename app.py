@@ -957,19 +957,45 @@ elif option == "🔍 ફોટો શોધો":
                                                 
                                                 col = cols[idx % 4]   # <--- અહીં col મળે છે
                                                 
-                                                with col:   # <--- આ લાઈન અહીં આવે છે
+                                                with col:   # <--- આ લાઈન એમ જ રાખો
                                                     try:
-                                                        # ===== Drive પરથી ઇમેજ બતાવો =====
                                                         file_id = item.get("drive_file_id")
+                                                        img_path = None  # પહેલાં ખાલી સેટ કરો (આ નવી લાઈન છે)
+                                                        
                                                         if file_id:
                                                             img_url = f"https://drive.google.com/uc?export=view&id={file_id}"
                                                             st.image(img_url, width=150)
+                                                            img_path = img_url  # URL ને જ પાથ તરીકે સ્ટોર કરો
                                                         else:
-                                                            # Fallback: જો Drive ID ના મળે તો લોકલ પાથ વાપરો
                                                             img_path = os.path.join("events", event_name, "images", item["filename"])
                                                             st.image(img_path, width=150)
-                                                    except:
+                                                    except Exception as e:
                                                         st.write(f"📁 {item.get('filename', 'Unknown')}")
+                                                        img_path = None
+
+                                                    # ===== ચેકબોક્સ (કાર્ટ માટે) - આ ભાગ જૂનો જ રાખવાનો છે =====
+                                                    price = PHOTO_PRICE
+                                                    cart_key = f"cart_{person}_{idx}"
+                                                    if price == 0:
+                                                        selected = st.checkbox(f"🆓 FREE", key=cart_key, value=False)
+                                                    else:
+                                                        selected = st.checkbox(f"🛒 ₹{price}", key=cart_key, value=False)
+                                                    
+                                                    if selected:
+                                                        if "cart" not in st.session_state:
+                                                            st.session_state.cart = []
+                                                        cart_item = {
+                                                            "person": person,
+                                                            "filename": item["filename"],
+                                                            "price": price,
+                                                            "img_path": img_path,   # હવે આ img_path ખાલી નહીં હોય!
+                                                            "drive_file_id": item.get("drive_file_id")
+                                                        }
+                                                        if cart_item not in st.session_state.cart:
+                                                            st.session_state.cart.append(cart_item)
+                                                    else:
+                                                        if "cart" in st.session_state:
+                                                            st.session_state.cart = [c for c in st.session_state.cart if not (c["person"] == person and c["filename"] == item["filename"])]
                                                     
                                                     # ===== ચેકબોક્સ (કાર્ટ માટે) =====
                                                     price = PHOTO_PRICE
