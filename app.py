@@ -53,36 +53,33 @@ import os
 from google.oauth2 import service_account   # આ ટોચ પર ઉમેરો
 
 def get_drive_service():
-    """Service Account (secrets.toml) અથવા OAuth (લોકલ માટે) વાપરો"""
-    try:
-        # ૧. પહેલાં secrets.toml માંથી Service Account અજમાવો
-        service_account_info = dict(st.secrets["gcp_service_account"])
-        creds = service_account.Credentials.from_service_account_info(
-            service_account_info,
-            scopes=['https://www.googleapis.com/auth/drive']
-        )
-        return build('drive', 'v3', credentials=creds)
-    except Exception as e:
-        # ૨. જો Service Account ન મળે, તો જૂની OAuth પદ્ધતિ (ફક્ત લોકલ માટે)
-        st.warning("⚠️ Service Account લોડ ન થયો, OAuth (લોકલ) અજમાવી રહ્યા છીએ...")
-        creds = None
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
-                creds = pickle.load(token)
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-                with open('token.pickle', 'wb') as token:
-                    pickle.dump(creds, token)
-            else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json',
-                    scopes=['https://www.googleapis.com/auth/drive.file']
-                )
-                creds = flow.run_local_server(port=0)
-                with open('token.pickle', 'wb') as token:
-                    pickle.dump(creds, token)
-        return build('drive', 'v3', credentials=creds)
+    """OAuth 2.0 (token.pickle) વાપરીને Google Drive સર્વિસ બનાવો"""
+    creds = None
+    
+    # 1. token.pickle માંથી credentials લોડ કરો
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    
+    # 2. જો credentials ન હોય અથવા સમાપ્ત થઈ ગયા હોય
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            # Refresh token વડે નવો access token મેળવો
+            creds.refresh(Request())
+            with open('token.pickle', 'wb') as token:
+                pickle.dump(creds, token)
+        else:
+            # નવી લૉગિન પ્રક્રિયા શરૂ કરો
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json',
+                scopes=['https://www.googleapis.com/auth/drive.file']
+            )
+            creds = flow.run_local_server(port=0)
+            with open('token.pickle', 'wb') as token:
+                pickle.dump(creds, token)
+    
+    # 3. Drive service બનાવો અને return કરો
+    return build('drive', 'v3', credentials=creds)
 
 def get_drive_folder_id(event_name):
     """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો"""
@@ -156,18 +153,31 @@ def load_event_data_from_drive(event_name):
         return {"password": "", "faces": []}
 
 def save_event_data_to_drive(event_name, data, folder_id):
-    """Google Drive પર ઇવેન્ટનું data.json સેવ કરો (folder_id બહારથી આવે છે)"""
     try:
         drive_service = get_drive_service()
+        if drive_service is None:
+            st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી.")
+            return False
+
         temp_path = f"temp_{event_name}_data.json"
         with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
-        # જૂનું data.json ડિલીટ કરો
+
+        # --- ડીબગ માટે ---
+        st.write(f"📝 ફાઇલ લખાઈ: {temp_path}")
+        st.write(f"📁 ફોલ્ડર ID: {folder_id}")
+        # --- અહીં સુધી ---
+
+        import time
+        time.sleep(0.5)
+
+        # Drive પર જૂની data.json શોધો
         query = f"name='data.json' and '{folder_id}' in parents and trashed=false"
         results = drive_service.files().list(q=query, fields="files(id)").execute()
         for file in results.get('files', []):
             drive_service.files().delete(fileId=file['id']).execute()
-        # નવું data.json અપલોડ કરો
+
+        # નવી data.json અપલોડ કરો
         media = MediaFileUpload(temp_path, mimetype='application/json')
         file_metadata = {
             'name': 'data.json',
@@ -178,10 +188,18 @@ def save_event_data_to_drive(event_name, data, folder_id):
             media_body=media,
             fields='id'
         ).execute()
-        os.remove(temp_path)
+
+        try:
+            os.remove(temp_path)
+        except:
+            pass
+
         return True
+
     except Exception as e:
+        # 🔥 આ લાઇન ઉમેરો – સંપૂર્ણ ભૂલ બતાવશે
         st.error(f"❌ Error saving to Drive: {e}")
+        st.exception(e)   # <--- આ લાઇન સંપૂર્ણ ભૂલ બતાવશે
         return False
 
 # ============================================================
@@ -417,10 +435,8 @@ def check_password():
     st.sidebar.markdown("---")
     password = st.sidebar.text_input("🔒 એડમિન પાસવર્ડ:", type="password", key="admin_pass")
     if password:
-        correct_password = st.secrets.get("admin_password", None)
-        if correct_password is None:
-            st.sidebar.error("⚠️ પાસવર્ડ સેટ નથી! કૃપા કરીને Secrets તપાસો.")
-            return False
+        # 🔥 સીધો પાસવર્ડ (secrets નો ઉપયોગ નથી)
+        correct_password = "JayphotoArt@2026"
         if password == correct_password:
             st.session_state.authenticated = True
             st.sidebar.success("✅ પ્રવેશ મળ્યો!")
@@ -550,7 +566,6 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         
         if selected_event:
             st.subheader(f"📤 '{selected_event}' માં ફોટા અપલોડ કરો")
-            folder_id = get_drive_folder_id(new_event.strip())
             uploaded_files = st.file_uploader(
                 "📸 ફોટા પસંદ કરો (JPG/PNG)...",
                 type=["jpg", "jpeg", "png"],
@@ -558,12 +573,18 @@ if option == "📂 ઇવેન્ટ મેનેજ":
             )
             
             if st.button("🔍 ચહેરા શોધો") and uploaded_files:
-                os.makedirs("temp_crops", exist_ok=True)
-                
-                if 'pending_faces' not in st.session_state:
-                    st.session_state.pending_faces = []
+                # 1. ચકાસો કે ઇવેન્ટનું નામ ખાલી નથી
+                if selected_event and selected_event.strip():
+                    # 2. હવે જ ફોલ્ડર ID મેળવો
+                    folder_id = get_drive_folder_id(selected_event.strip())
+                    if folder_id is None:
+                        st.error("❌ Drive પર ફોલ્ડર મળ્યું નહીં. કૃપા કરીને ઇવેન્ટ ફરી બનાવો.")
+                        st.stop()
                 else:
-                    st.session_state.pending_faces = []
+                    st.error("❌ કૃપા કરીને યોગ્ય ઇવેન્ટ પસંદ કરો.")
+                    st.stop()
+                
+                # ... બાકીનો કોડ (progress_bar, ફોટા વાંચવા, ચહેરા શોધવા) ...
                 
                 progress_bar = st.progress(0)
                 status_text = st.empty()
