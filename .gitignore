@@ -14,4 +14,3 @@ credentials.json
 token.pickle# Google OAuth / Secrets (આ ફાઇલો Gitમાં ન જાય)
 credentials.json
 token.pickle
-.streamlit/secrets.toml

@@ -52,24 +52,36 @@ import os
 
 from google.oauth2 import service_account   # આ ટોચ પર ઉમેરો
 
+from google.oauth2 import service_account   # ટોચ પર આ ઇમ્પોર્ટ ઉમેરો
+
 def get_drive_service():
-    """OAuth 2.0 (token.pickle) વાપરીને Google Drive સર્વિસ બનાવો"""
-    creds = None
+    """Service Account (Cloud) અથવા OAuth (લોકલ) વાપરો"""
     
-    # 1. token.pickle માંથી credentials લોડ કરો
+    # 1️⃣ પહેલાં Service Account અજમાવો (Cloud માટે)
+    try:
+        service_account_info = dict(st.secrets["gcp_service_account"])
+        creds = service_account.Credentials.from_service_account_info(
+            service_account_info,
+            scopes=['https://www.googleapis.com/auth/drive']
+        )
+        return build('drive', 'v3', credentials=creds)
+    except Exception:
+        # Service Account ન ચાલે તો OAuth અજમાવો (ફક્ત લોકલ માટે)
+        pass
+    
+    # 2️⃣ OAuth 2.0 (લોકલ માટે - token.pickle)
+    creds = None
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
     
-    # 2. જો credentials ન હોય અથવા સમાપ્ત થઈ ગયા હોય
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            # Refresh token વડે નવો access token મેળવો
             creds.refresh(Request())
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
         else:
-            # નવી લૉગિન પ્રક્રિયા શરૂ કરો
+            # 🔥 આ ભાગ ફક્ત લોકલ માટે જ ચાલશે
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json',
                 scopes=['https://www.googleapis.com/auth/drive.file']
@@ -78,7 +90,6 @@ def get_drive_service():
             with open('token.pickle', 'wb') as token:
                 pickle.dump(creds, token)
     
-    # 3. Drive service બનાવો અને return કરો
     return build('drive', 'v3', credentials=creds)
 
 def get_drive_folder_id(event_name):
@@ -542,11 +553,9 @@ if option == "📂 ઇવેન્ટ મેનેજ":
         if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
             st.write("🔍 DEBUG: Button clicked!")
             if new_event.strip() and event_password.strip():
-                st.write(f"🔍 DEBUG: Event={new_event}, Password={event_password}")
-                folder_id = get_drive_folder_id(new_event.strip())
-                st.write(f"🔍 DEBUG: folder_id = {folder_id}")
+                folder_id = get_drive_folder_id(new_event.strip())   # .strip() ઉમેરો
                 if folder_id is None:
-                    st.error("❌ Google Drive પર ફોલ્ડર બનાવી શકાયું નહીં.")
+                    st.error("❌ ફોલ્ડર બનાવી શકાયું નહીં.")
                 else:
                     event_data = {"password": event_password, "faces": []}
                     success = save_event_data(new_event.strip(), event_data, folder_id)
