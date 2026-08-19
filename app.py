@@ -441,21 +441,32 @@ option = st.sidebar.selectbox(
 # PASSWORD PROTECTION
 # ============================================================
 def check_password():
+    # જો પહેલાથી લોગિન હોય તો સીધું જવા દો
     if st.session_state.get("authenticated", False):
         return True
+
     st.sidebar.markdown("---")
-    password = st.sidebar.text_input("🔒 એડમિન પાસવર્ડ:", type="password", key="admin_pass")
+    password = st.sidebar.text_input(
+        "🔒 એડમિન પાસવર્ડ:", 
+        type="password", 
+        key="admin_pass"
+    )
+    
     if password:
-        # 🔥 સીધો પાસવર્ડ (secrets નો ઉપયોગ નથી)
         correct_password = "JayPhotoArt@2026"
-        if password == correct_password:
+        
+        # .strip() થી આગળ-પાછળની વધારાની જગ્યા (Space) હટી જશે
+        if password.strip() == correct_password:
             st.session_state.authenticated = True
             st.sidebar.success("✅ પ્રવેશ મળ્યો!")
-            return True
+            st.rerun()  # આનાથી પેજ તરત ખૂલી જશે
         else:
+            st.session_state.authenticated = False
             st.sidebar.error("❌ ખોટો પાસવર્ડ!")
             return False
+
     return False
+
 
 if option in ["📂 ઇવેન્ટ મેનેજ", "📱 QR કોડ બનાવો", "📊 Analytics"]:
     if not check_password():
