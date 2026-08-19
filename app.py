@@ -447,7 +447,7 @@ def check_password():
     password = st.sidebar.text_input("🔒 એડમિન પાસવર્ડ:", type="password", key="admin_pass")
     if password:
         # 🔥 સીધો પાસવર્ડ (secrets નો ઉપયોગ નથી)
-        correct_password = "JayphotoArt@2026"
+        correct_password = "JayPhotoArt@2026"
         if password == correct_password:
             st.session_state.authenticated = True
             st.sidebar.success("✅ પ્રવેશ મળ્યો!")
