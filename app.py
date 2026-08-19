@@ -42,70 +42,80 @@ st.set_page_config(
 # ============================================================
 # GOOGLE DRIVE INTEGRATION
 # ============================================================
+import os
+import json
+import time
 import pickle
+import streamlit as st
+from google.oauth2 import service_account
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
-import os
+from googleapiclient.http import MediaFileUpload
 
-# ... બાકીનો કોડ ...
+# વર્તમાન ફોલ્ડરનો પાથ
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-from google.oauth2 import service_account   # આ ટોચ પર ઉમેરો
-
-from google.oauth2 import service_account   # ટોચ પર આ ઇમ્પોર્ટ ઉમેરો
 
 def get_drive_service():
     """Service Account (Cloud) અથવા OAuth (લોકલ) વાપરો"""
     
-    # 1️⃣ પહેલાં Service Account અજમાવો (Cloud માટે)
+    # 1️⃣ પહેલાં Service Account અજમાવો (Streamlit Cloud માટે)
     try:
-        service_account_info = dict(st.secrets["gcp_service_account"])
-        creds = service_account.Credentials.from_service_account_info(
-            service_account_info,
-            scopes=['https://www.googleapis.com/auth/drive']
-        )
-        return build('drive', 'v3', credentials=creds)
-    except Exception:
-        # Service Account ન ચાલે તો OAuth અજમાવો (ફક્ત લોકલ માટે)
+        if "gcp_service_account" in st.secrets:
+            service_account_info = dict(st.secrets["gcp_service_account"])
+            creds = service_account.Credentials.from_service_account_info(
+                service_account_info,
+                scopes=['https://www.googleapis.com/auth/drive']
+            )
+            return build('drive', 'v3', credentials=creds)
+    except Exception as e:
         pass
     
-    # 2️⃣ OAuth 2.0 (લોકલ માટે - token.pickle)
+    # 2️⃣ OAuth 2.0 (તમારા પોતાના કમ્પ્યુટર / લોકલ માટે)
     creds = None
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+    token_path = os.path.join(CURRENT_DIR, 'token.pickle')
+    cred_file_path = os.path.join(CURRENT_DIR, 'credentials.json')
+
+    if os.path.exists(token_path):
+        with open(token_path, 'rb') as token:
             creds = pickle.load(token)
     
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
-            with open('token.pickle', 'wb') as token:
+            with open(token_path, 'wb') as token:
                 pickle.dump(creds, token)
         else:
-            # 🔥 આ ભાગ ફક્ત લોકલ માટે જ ચાલશે
+            if not os.path.exists(cred_file_path):
+                st.error("❌ credentials.json ફાઈલ પ્રોજેક્ટ ફોલ્ડરમાં મળી નથી!")
+                return None
+
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json',
-                scopes=['https://www.googleapis.com/auth/drive.file']
+                cred_file_path,
+                scopes=['https://www.googleapis.com/auth/drive']
             )
             creds = flow.run_local_server(port=0)
-            with open('token.pickle', 'wb') as token:
+            with open(token_path, 'wb') as token:
                 pickle.dump(creds, token)
     
     return build('drive', 'v3', credentials=creds)
 
+
 def get_drive_folder_id(event_name):
-    """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો"""
-    st.write(f"🔍 DEBUG: get_drive_folder_id called with: {event_name}")  # <--- ડીબગ, ઇચ્છા હોય તો દૂર કરો
+    """ઇવેન્ટ માટે Google Drive ફોલ્ડર ID મેળવો અથવા નવું ફોલ્ડર બનાવો"""
     drive_service = get_drive_service()
-    st.write(f"🔍 DEBUG: drive_service = {drive_service}")  # <--- ડીબગ
     if drive_service is None:
-        st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી. Secrets ચકાસો.")
+        st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી.")
         return None
     try:
         query = f"name='{event_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
         results = drive_service.files().list(q=query, fields="files(id, name)").execute()
         folders = results.get('files', [])
+        
         if folders:
             return folders[0]['id']
+            
         file_metadata = {
             'name': event_name,
             'mimeType': 'application/vnd.google-apps.folder'
@@ -115,6 +125,7 @@ def get_drive_folder_id(event_name):
     except Exception as e:
         st.error(f"❌ Google Drive API Error: {e}")
         return None
+
 
 def upload_to_drive(file_path, folder_id):
     """Google Drive પર ફોટો અપલોડ કરો"""
@@ -130,29 +141,37 @@ def upload_to_drive(file_path, folder_id):
         file = drive_service.files().create(
             body=file_metadata,
             media_body=media,
-            fields='id',
+            fields='id'
         ).execute()
         return file.get('id')
     except Exception as e:
         st.error(f"❌ Google Drive upload error: {e}")
         return None
 
+
 def load_event_data_from_drive(event_name):
     """Google Drive પરથી ઇવેન્ટનું data.json વાંચો"""
     try:
         drive_service = get_drive_service()
         folder_id = get_drive_folder_id(event_name)
+        if not folder_id:
+            return {"password": "", "faces": []}
+
         query = f"name='data.json' and '{folder_id}' in parents and trashed=false"
         results = drive_service.files().list(q=query, fields="files(id)").execute()
         files = results.get('files', [])
+        
         if not files:
             return {"password": "", "faces": []}
+            
         file_id = files[0]['id']
         request = drive_service.files().get_media(fileId=file_id)
         file_content = request.execute()
         data = json.loads(file_content.decode('utf-8'))
+        
         if isinstance(data, list):
             data = {"password": "", "faces": data}
+            
         for face in data.get("faces", []):
             if "embedding" in face and isinstance(face["embedding"], str):
                 try:
@@ -160,29 +179,25 @@ def load_event_data_from_drive(event_name):
                 except:
                     face["embedding"] = []
         return data
-    except Exception as e:
+    except Exception:
         return {"password": "", "faces": []}
 
+
 def save_event_data_to_drive(event_name, data, folder_id):
+    """Google Drive પર ઇવેન્ટનો ડેટા સેવ કરો"""
     try:
         drive_service = get_drive_service()
         if drive_service is None:
             st.error("❌ Google Drive સર્વિસ ઉપલબ્ધ નથી.")
             return False
 
-        temp_path = f"temp_{event_name}_data.json"
+        temp_path = os.path.join(CURRENT_DIR, f"temp_{event_name}_data.json")
         with open(temp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
-        # --- ડીબગ માટે ---
-        st.write(f"📝 ફાઇલ લખાઈ: {temp_path}")
-        st.write(f"📁 ફોલ્ડર ID: {folder_id}")
-        # --- અહીં સુધી ---
-
-        import time
         time.sleep(0.5)
 
-        # Drive પર જૂની data.json શોધો
+        # Drive પર જૂની data.json હોય તો કાઢી નાખો
         query = f"name='data.json' and '{folder_id}' in parents and trashed=false"
         results = drive_service.files().list(q=query, fields="files(id)").execute()
         for file in results.get('files', []):
@@ -200,18 +215,17 @@ def save_event_data_to_drive(event_name, data, folder_id):
             fields='id'
         ).execute()
 
-        try:
+        # ટેમ્પરરી ફાઈલ ડિલીટ કરો
+        if os.path.exists(temp_path):
             os.remove(temp_path)
-        except:
-            pass
 
         return True
-
     except Exception as e:
-        # 🔥 આ લાઇન ઉમેરો – સંપૂર્ણ ભૂલ બતાવશે
         st.error(f"❌ Error saving to Drive: {e}")
-        st.exception(e)   # <--- આ લાઇન સંપૂર્ણ ભૂલ બતાવશે
         return False
+
+# નામ મેચિંગ માટે એલિયાસ (Alias)
+save_event_data = save_event_data_to_drive
 
 # ============================================================
 # HELPER FUNCTIONS (Events)
@@ -558,27 +572,34 @@ if option == "📂 ઇવેન્ટ મેનેજ":
     """, unsafe_allow_html=True)
     
     with st.expander("➕ નવી ઇવેન્ટ બનાવો", expanded=False):
-        new_event = st.text_input("ઇવેન્ટનું નામ (દા.ત., શર્મા_લગ્ન)")
-        event_password = st.text_input("🔒 ઇવેન્ટ પાસવર્ડ (ગ્રાહકો માટે)", type="password")
-        
-        if st.button("📌 ઇવેન્ટ બનાવો", key="create_event"):
-            st.write("🔍 DEBUG: Button clicked!")
-            if new_event.strip() and event_password.strip():
-                folder_id = get_drive_folder_id(new_event.strip())   # .strip() ઉમેરો
-                if folder_id is None:
-                    st.error("❌ ફોલ્ડર બનાવી શકાયું નહીં.")
-                else:
-                    event_data = {"password": event_password, "faces": []}
-                    success = save_event_data(new_event.strip(), event_data, folder_id)
-                    if success:
-                        st.success(f"✅ '{new_event}' ઇવેન્ટ Drive પર સફળતાપૂર્વક બની!")
-                        st.rerun()
+        with st.form(key="create_event_form"):
+            new_event = st.text_input("ઇવેન્ટનું નામ (દા.ત., શર્મા_લગ્ન)", key="new_event_input")
+            event_password = st.text_input("🔒 ઇવેન્ટ પાસવર્ડ (ગ્રાહકો માટે)", type="password", key="event_pass_input")
+            
+            submit_btn = st.form_submit_button("📌 ઇવેન્ટ બનાવો")
+            
+            if submit_btn:
+                event_name_clean = new_event.strip() if new_event else ""
+                event_pass_clean = event_password.strip() if event_password else ""
+
+                if event_name_clean and event_pass_clean:
+                    folder_id = get_drive_folder_id(event_name_clean)
+                    
+                    if folder_id is None:
+                        st.error("❌ ફોલ્ડર બનાવી શકાયું નહીં.")
                     else:
-                        st.error("❌ ઇવેન્ટ સેવ કરતી વખતે ભૂલ આવી.")
-            else:
-                st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
+                        event_data = {"password": event_pass_clean, "faces": []}
+                        success = save_event_data(event_name_clean, event_data, folder_id)
+                        if success:
+                            st.success(f"✅ '{event_name_clean}' ઇવેન્ટ સફળતાપૂર્વક બની!")
+                            st.rerun()
+                        else:
+                            st.error("❌ ઇવેન્ટ સેવ કરતી વખતે ભૂલ આવી.")
+                else:
+                    st.error("❌ કૃપા કરીને નામ અને પાસવર્ડ બંને ભરો.")
 
     events = get_events_list()
+
     if not events:
         st.info("ℹ️ હજુ સુધી કોઈ ઇવેન્ટ નથી. ઉપર નવી ઇવેન્ટ બનાવો.")
     else:
